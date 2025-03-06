@@ -94,7 +94,7 @@
 
                 let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
                 if (fundamentalFreq > 0) {
-                    document.getElementById("freqDisplay").innerText = `Frequenza: ${fundamentalFreq.toFixed(2)} Hz`;
+                    document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
                     let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) => 
                         Math.abs(curr[1] - fundamentalFreq) < Math.abs(prev[1] - fundamentalFreq) ? curr : prev);
                     document.getElementById("noteDisplay").innerText = `Nota: ${closestNote[0]}`;
