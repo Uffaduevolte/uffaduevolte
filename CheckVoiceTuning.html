@@ -183,10 +183,13 @@
         }
 
         function autoCorrelate(buffer, sampleRate) {
-            let bestOffset = -1, bestCorrelation = 0, rms = 0;
-            const SIZE = buffer.length;
-            const MAX_SAMPLES = Math.floor(SIZE / 2);
-            const MIN_SAMPLES = 0;
+            let SIZE = buffer.length;
+            let MAX_SAMPLES = Math.floor(SIZE / 2);
+            let bestOffset = -1;
+            let bestCorrelation = 0;
+            let rms = 0;
+            let foundGoodCorrelation = false;
+            let correlations = new Array(MAX_SAMPLES);
 
             for (let i = 0; i < SIZE; i++) {
                 let val = buffer[i];
@@ -196,16 +199,23 @@
             if (rms < 0.01) return -1;
 
             let lastCorrelation = 1;
-            for (let offset = MIN_SAMPLES; offset < MAX_SAMPLES; offset++) {
+            for (let offset = 0; offset < MAX_SAMPLES; offset++) {
                 let correlation = 0;
 
                 for (let i = 0; i < MAX_SAMPLES; i++) {
                     correlation += Math.abs((buffer[i]) - (buffer[i + offset]));
                 }
                 correlation = 1 - (correlation / MAX_SAMPLES);
-                if (correlation > lastCorrelation) {
-                    bestCorrelation = correlation;
-                    bestOffset = offset;
+                correlations[offset] = correlation;
+                if ((correlation > 0.9) && (correlation > lastCorrelation)) {
+                    foundGoodCorrelation = true;
+                    if (correlation > bestCorrelation) {
+                        bestCorrelation = correlation;
+                        bestOffset = offset;
+                    }
+                } else if (foundGoodCorrelation) {
+                    let shift = (correlations[bestOffset + 1] - correlations[bestOffset - 1]) / correlations[bestOffset];  
+                    return sampleRate / (bestOffset + (8 * shift));
                 }
                 lastCorrelation = correlation;
             }
