@@ -82,8 +82,8 @@
         }
         .note {
             position: absolute;
-            width: 10px; /* width should be the same as the space between lines */
-            height: 10px; /* height should be the same as the space between lines */
+            width: 20px; /* Modificato per corrispondere allo spazio tra le righe */
+            height: 20px; /* Modificato per corrispondere allo spazio tra le righe */
             background-color: red;
             border-radius: 50%;
         }
@@ -134,15 +134,9 @@
         };
 
         const notePositions = {
-            "C0": 240, "C#0": 235, "D0": 230, "D#0": 225, "E0": 220, "F0": 215, "F#0": 210, "G0": 205, "G#0": 200, "A0": 195, "A#0": 190, "B0": 185,
-            "C1": 180, "C#1": 175, "D1": 170, "D#1": 165, "E1": 160, "F1": 155, "F#1": 150, "G1": 145, "G#1": 140, "A1": 135, "A#1": 130, "B1": 125,
-            "C2": 120, "C#2": 115, "D2": 110, "D#2": 105, "E2": 100, "F2": 95, "F#2": 90, "G2": 85, "G#2": 80, "A2": 75, "A#2": 70, "B2": 65,
-            "C3": 60, "C#3": 55, "D3": 50, "D#3": 45, "E3": 40, "F3": 35, "F#3": 30, "G3": 25, "G#3": 20, "A3": 15, "A#3": 10, "B3": 5,
-            "C4": 0, "C#4": -5, "D4": -10, "D#4": -15, "E4": -20, "F4": -25, "F#4": -30, "G4": -35, "G#4": -40, "A4": -45, "A#4": -50, "B4": -55,
-            "C5": -60, "C#5": -65, "D5": -70, "D#5": -75, "E5": -80, "F5": -85, "F#5": -90, "G5": -95, "G#5": -100, "A5": -105, "A#5": -110, "B5": -115
+            "C4": 100, "C#4": 95, "D4": 90, "D#4": 85, "E4": 80, "F4": 75, "F#4": 70, "G4": 65, "G#4": 60, "A4": 55, "A#4": 50, "B4": 45,
+            "C5": 40, "C#5": 35, "D5": 30, "D#5": 25, "E5": 20, "F5": 15, "F#5": 10, "G5": 5, "G#5": 0, "A5": -5, "A#5": -10, "B5": -15
         };
-
-        let lastNote = null; // Memorizza l'ultima nota rilevata
 
         async function startPitchDetection() {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -164,7 +158,6 @@
                 document.getElementById("intensityLevel").style.width = `${intensity * 100}%`;
 
                 let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
-
                 if (fundamentalFreq > 0 && intensity > 0.01) {
                     document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
                     let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) =>
@@ -175,32 +168,47 @@
 
                     const note = closestNote[0];
                     document.getElementById("red-dot").style.top = `${notePositions[note] || 60}px`;
-                    lastNote = note; // Aggiorna l'ultima nota rilevata
-                } else if (lastNote) {
-                    document.getElementById("noteDisplay").innerText = `Nota: ${lastNote}`;
                 } else {
-                    document.getElementById("freqDisplay").innerText = `Hz`;
-                    document.getElementById("noteDisplay").innerText = `--`;
+                    document.getElementById("freqDisplay").innerText = `Frequenza: -- Hz`;
+                    document.getElementById("noteDisplay").innerText = `Nota: --`;
                     document.getElementById("noteDisplay").className = "red";
                 }
-                setTimeout(detectPitch, 250); // Update pitch every 250 ms
+                setTimeout(detectPitch, 250); // Aggiorna il pitch ogni 250 ms
             }
             detectPitch();
         }
 
         function autoCorrelate(buffer, sampleRate) {
-            let bestOffset = -1, bestCorrelation = 0;
-            for (let offset = 2; offset < buffer.length / 2; offset++) {
+            let bestOffset = -1, bestCorrelation = 0, rms = 0;
+            const SIZE = buffer.length;
+            const MAX_SAMPLES = Math.floor(SIZE / 2);
+            const MIN_SAMPLES = 0;
+
+            for (let i = 0; i < SIZE; i++) {
+                let val = buffer[i];
+                rms += val * val;
+            }
+            rms = Math.sqrt(rms / SIZE);
+            if (rms < 0.01) return -1;
+
+            let lastCorrelation = 1;
+            for (let offset = MIN_SAMPLES; offset < MAX_SAMPLES; offset++) {
                 let correlation = 0;
-                for (let i = 0; i < buffer.length / 2; i++) {
-                    correlation += buffer[i] * buffer[i + offset];
+
+                for (let i = 0; i < MAX_SAMPLES; i++) {
+                    correlation += Math.abs((buffer[i]) - (buffer[i + offset]));
                 }
-                if (correlation > bestCorrelation) {
+                correlation = 1 - (correlation / MAX_SAMPLES);
+                if (correlation > lastCorrelation) {
                     bestCorrelation = correlation;
                     bestOffset = offset;
                 }
+                lastCorrelation = correlation;
             }
-            return bestOffset > 0 ? sampleRate / bestOffset : -1;
+            if (bestCorrelation > 0.01) {
+                return sampleRate / bestOffset;
+            }
+            return -1;
         }
 
         startPitchDetection();
