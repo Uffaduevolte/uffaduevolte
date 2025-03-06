@@ -40,6 +40,9 @@
             /* (Dati invariati) */
         };
 
+        let frequencyBuffer = [];
+        const bufferSize = 5; // Dimensione della media mobile
+
         async function startPitchDetection() {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const audioContext = new AudioContext();
@@ -60,6 +63,16 @@
                 document.getElementById("intensityLevel").style.width = `${intensity * 100}%`;
 
                 let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
+
+                // Aggiungi la frequenza al buffer e calcola la media mobile
+                if (fundamentalFreq > 0) {
+                    frequencyBuffer.push(fundamentalFreq);
+                    if (frequencyBuffer.length > bufferSize) {
+                        frequencyBuffer.shift();
+                    }
+                    fundamentalFreq = frequencyBuffer.reduce((a, b) => a + b, 0) / frequencyBuffer.length;
+                }
+
                 if (fundamentalFreq > 0 && intensity > 0.01) {
                     document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
                     let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) =>
@@ -114,20 +127,21 @@
                 } else if (foundGoodCorrelation) {
                     let shift = (correlations[bestOffset + 1] - correlations[bestOffset - 1]) / correlations[bestOffset];  
                     let frequency = sampleRate / (bestOffset + (8 * shift));
-                    return correctOctave(frequency);
+                    return correctOctave(frequency, rms);
                 }
                 lastCorrelation = correlation;
             }
             if (bestCorrelation > 0.01) {
                 let frequency = sampleRate / bestOffset;
-                return correctOctave(frequency);
+                return correctOctave(frequency, rms);
             }
             return -1;
         }
 
-        function correctOctave(frequency) {
+        function correctOctave(frequency, rms) {
             while (frequency < 16.35) frequency *= 2;
             while (frequency > 987.77) frequency /= 2;
+            if (rms < 0.1) frequency = -1; // Ignora frequenze molto basse se l'intensità è troppo bassa
             return frequency;
         }
 
