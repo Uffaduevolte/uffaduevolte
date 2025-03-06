@@ -39,14 +39,22 @@
             border-radius: 10px;
         }
         #immagine-sfondo {
-            width: 40%; /* Riduce la larghezza al 40% dell'originale */
+            width: 25%; /* Riduce la larghezza al 25% dell'originale */
             height: auto; /* Mantiene le proporzioni */
             position: fixed;
-            bottom: 0;
+            bottom: 50px; /* Modificato per lasciare spazio al testo */
             left: 50%;
             transform: translateX(-50%); /* Centra l'immagine */
             z-index: -1;
-            opacity: 1;
+            opacity: 0.5;
+        }
+        #my-channel {
+            margin-top: 20px;
+            font-size: 1.5em;
+            position: fixed;
+            bottom: 10px; /* Posiziona il testo sotto l'immagine */
+            left: 50%;
+            transform: translateX(-50%);
         }
     </style>
 </head>
