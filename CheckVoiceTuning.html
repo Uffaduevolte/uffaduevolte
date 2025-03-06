@@ -1,203 +1,73 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Voice Tuner</title>
-    <style>
-        body {
-            background-color: #000;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
+<style>
+    .note {
+        position: absolute;
+        width: 20px; /* Modificato per corrispondere allo spazio tra le righe */
+        height: 20px; /* Modificato per corrispondere allo spazio tra le righe */
+        background-color: red;
+        border-radius: 50%;
+    }
+</style>
+
+<script>
+    function autoCorrelate(buffer, sampleRate) {
+        let bestOffset = -1, bestCorrelation = 0, rms = 0;
+        const SIZE = buffer.length;
+        const MAX_SAMPLES = Math.floor(SIZE / 2);
+        const MIN_SAMPLES = 0;
+
+        for (let i = 0; i < SIZE; i++) {
+            let val = buffer[i];
+            rms += val * val;
         }
-        h1 {
-            color: #f39c12;
-        }
-        #freqDisplay, #noteDisplay {
-            font-size: 2em;
-            margin-top: 10px;
-        }
-        #noteDisplay {
-            font-weight: bold;
-        }
-        .red { color: red; }
-        .green { color: limegreen; }
-        #intensityBar {
-            width: 100%;
-            height: 20px;
-            background-color: #555;
-            margin-top: 20px;
-            position: relative;
-            border-radius: 10px;
-        }
-        #intensityLevel {
-            height: 100%;
-            width: 0%;
-            background-color: #f39c12;
-            border-radius: 10px;
-        }
-        #immagine-sfondo {
-            width: 25%;
-            height: auto;
-            position: fixed;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: -1;
-            opacity: 1;
-        }
-        #my-channel {
-            margin-top: 20px;
-            font-size: 1em;
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        #pentagramma {
-            margin-top: 20px;
-            position: relative;
-            height: 200px;
-        }
-        .nota {
-            fill: red;
-        }
-        .stave {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-        }
-        .line {
-            height: 2px;
-            background-color: white;
-            margin: 10px 0;
-        }
-        .grey-line {
-            height: 2px;
-            background-color: grey;
-            margin: 20px 0;
-        }
-        .note {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: red;
-            border-radius: 50%;
-        }
-        @media screen and (orientation:landscape) {
-            body {
-                transform: rotate(90deg);
-                transform-origin: left top;
-                width: 100vh;
-                overflow-x: hidden;
-                position: absolute;
-                top: 100%;
-                left: 0;
+        rms = Math.sqrt(rms / SIZE);
+        if (rms < 0.01) return -1;
+
+        let lastCorrelation = 1;
+        for (let offset = MIN_SAMPLES; offset < MAX_SAMPLES; offset++) {
+            let correlation = 0;
+
+            for (let i = 0; i < MAX_SAMPLES; i++) {
+                correlation += Math.abs((buffer[i]) - (buffer[i + offset]));
             }
-        }
-    </style>
-</head>
-<body>
-    <h1>Voice Tuner</h1>
-    <p id="freqDisplay">Hz</p>
-    <p id="noteDisplay" class="red">Nota: --</p>
-    <div id="intensityBar"><div id="intensityLevel"></div></div>
-    <div id="pentagramma">
-        <div class="stave" id="treble-stave">
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-        </div>
-        <div class="grey-line"></div>
-        <div class="stave" id="bass-stave">
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-        </div>
-        <div class="note" id="red-dot" style="top: 60px; left: 150px;"></div>
-    </div>
-    <script>
-        const noteFrequencies = {
-            "C0": 16.35, "C#0": 17.32, "D0": 18.35, "D#0": 19.45, "E0": 20.60, "F0": 21.83, "F#0": 23.12, "G0": 24.50, "G#0": 25.96, "A0": 27.50, "A#0": 29.14, "B0": 30.87,
-            "C1": 32.70, "C#1": 34.65, "D1": 36.71, "D#1": 38.89, "E1": 41.20, "F1": 43.65, "F#1": 46.25, "G1": 49.00, "G#1": 51.91, "A1": 55.00, "A#1": 58.27, "B1": 61.74,
-            "C2": 65.41, "C#2": 69.30, "D2": 73.42, "D#2": 77.78, "E2": 82.41, "F2": 87.31, "F#2": 92.50, "G2": 98.00, "G#2": 103.83, "A2": 110.00, "A#2": 116.54, "B2": 123.47,
-            "C3": 130.81, "C#3": 138.59, "D3": 146.83, "D#3": 155.56, "E3": 164.81, "F3": 174.61, "F#3": 185.00, "G3": 196.00, "G#3": 207.65, "A3": 220.00, "A#3": 233.08, "B3": 246.94,
-            "C4": 261.63, "C#4": 277.18, "D4": 293.66, "D#4": 311.13, "E4": 329.63, "F4": 349.23, "F#4": 369.99, "G4": 392.00, "G#4": 415.30, "A4": 440.00, "A#4": 466.16, "B4": 493.88,
-            "C5": 523.25, "C#5": 554.37, "D5": 587.33, "D#5": 622.25, "E5": 659.25, "F5": 698.46, "F#5": 739.99, "G5": 783.99, "G#5": 830.61, "A5": 880.00, "A#5": 932.33, "B5": 987.77
-        };
-
-        const notePositions = {
-            "C4": 100, "C#4": 95, "D4": 90, "D#4": 85, "E4": 80, "F4": 75, "F#4": 70, "G4": 65, "G#4": 60, "A4": 55, "A#4": 50, "B4": 45,
-            "C5": 40, "C#5": 35, "D5": 30, "D#5": 25, "E5": 20, "F5": 15, "F#5": 10, "G5": 5, "G#5": 0, "A5": -5, "A#5": -10, "B5": -15
-        };
-
-        async function startPitchDetection() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const audioContext = new AudioContext();
-            const analyser = audioContext.createAnalyser();
-            const microphone = audioContext.createMediaStreamSource(stream);
-            microphone.connect(analyser);
-            analyser.fftSize = 2048;
-            const buffer = new Float32Array(analyser.fftSize);
-
-            function detectPitch() {
-                analyser.getFloatTimeDomainData(buffer);
-                let maxVal = 0, sum = 0;
-                for (let i = 0; i < buffer.length; i++) {
-                    maxVal = Math.max(maxVal, Math.abs(buffer[i]));
-                    sum += buffer[i] * buffer[i];
-                }
-                const intensity = Math.sqrt(sum / buffer.length);
-                document.getElementById("intensityLevel").style.width = `${intensity * 100}%`;
-
-                let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
-                if (fundamentalFreq > 0 && intensity > 0.01) {
-                    document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
-                    let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) =>
-                        Math.abs(curr[1] - fundamentalFreq) < Math.abs(prev[1] - fundamentalFreq) ? curr : prev);
-                    document.getElementById("noteDisplay").innerText = `Nota: ${closestNote[0]}`;
-                    document.getElementById("noteDisplay").className =
-                        Math.abs(closestNote[1] - fundamentalFreq) < 1 ? "green" : "red";
-
-                    const note = closestNote[0];
-                    document.getElementById("red-dot").style.top = `${notePositions[note] || 60}px`;
-                } else {
-                    document.getElementById("freqDisplay").innerText = `Frequenza: -- Hz`;
-                    document.getElementById("noteDisplay").innerText = `Nota: --`;
-                    document.getElementById("noteDisplay").className = "red";
-                }
-                setTimeout(detectPitch, 250); // Aggiorna il pitch ogni 250 ms
+            correlation = 1 - (correlation / MAX_SAMPLES);
+            if (correlation > lastCorrelation) {
+                bestCorrelation = correlation;
+                bestOffset = offset;
             }
-            detectPitch();
+            lastCorrelation = correlation;
         }
-
-        function autoCorrelate(buffer, sampleRate) {
-            let bestOffset = -1, bestCorrelation = 0;
-            for (let offset = 2; offset < buffer.length / 2; offset++) {
-                let correlation = 0;
-                for (let i = 0; i < buffer.length / 2; i++) {
-                    correlation += buffer[i] * buffer[i + offset];
-                }
-                if (correlation > bestCorrelation) {
-                    bestCorrelation = correlation;
-                    bestOffset = offset;
-                }
-            }
-            return bestOffset > 0 ? sampleRate / bestOffset : -1;
+        if (bestCorrelation > 0.01) {
+            return sampleRate / bestOffset;
         }
+        return -1;
+    }
 
-        startPitchDetection();
-    </script>
-    <img id="immagine-sfondo" src="images/MiaFaccia001.jpg" alt="Sfondo">
-    <div id="my-channel">
-        <a href="https://youtube.com/@marcellomazzotti?si=ujMxAi8PYidn_zSA" target="_blank">My Channel</a>
-    </div>
-</body>
-</html>
+    function detectPitch() {
+        analyser.getFloatTimeDomainData(buffer);
+        let maxVal = 0, sum = 0;
+        for (let i = 0; i < buffer.length; i++) {
+            maxVal = Math.max(maxVal, Math.abs(buffer[i]));
+            sum += buffer[i] * buffer[i];
+        }
+        const intensity = Math.sqrt(sum / buffer.length);
+        document.getElementById("intensityLevel").style.width = `${intensity * 100}%`;
+
+        let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
+        if (fundamentalFreq > 0 && intensity > 0.01) {
+            document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
+            let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) =>
+                Math.abs(curr[1] - fundamentalFreq) < Math.abs(prev[1] - fundamentalFreq) ? curr : prev);
+            document.getElementById("noteDisplay").innerText = `Nota: ${closestNote[0]}`;
+            document.getElementById("noteDisplay").className =
+                Math.abs(closestNote[1] - fundamentalFreq) < 1 ? "green" : "red";
+
+            const note = closestNote[0];
+            document.getElementById("red-dot").style.top = `${notePositions[note] || 60}px`;
+        } else {
+            document.getElementById("freqDisplay").innerText = `Frequenza: -- Hz`;
+            document.getElementById("noteDisplay").innerText = `Nota: --`;
+            document.getElementById("noteDisplay").className = "red";
+        }
+        setTimeout(detectPitch, 250); // Aggiorna il pitch ogni 250 ms
+    }
+</script>
