@@ -6,7 +6,7 @@
     <title>Voice Tuner</title>
     <style>
         body {
-            background-color: #000; /* Nero */
+            background-color: #000;
             color: white;
             font-family: Arial, sans-serif;
             text-align: center;
@@ -39,12 +39,12 @@
             border-radius: 10px;
         }
         #immagine-sfondo {
-            width: 25%; /* Riduce la larghezza al 25% dell'originale */
-            height: auto; /* Mantiene le proporzioni */
+            width: 25%;
+            height: auto;
             position: fixed;
-            bottom: 50px; /* Modificato per lasciare spazio al testo */
+            bottom: 50px;
             left: 50%;
-            transform: translateX(-50%); /* Centra l'immagine */
+            transform: translateX(-50%);
             z-index: -1;
             opacity: 1;
         }
@@ -52,9 +52,15 @@
             margin-top: 20px;
             font-size: 1em;
             position: fixed;
-            bottom: 10px; /* Posiziona il testo sotto l'immagine */
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
+        }
+        #pentagramma {
+            margin-top: 20px;
+        }
+        .nota {
+            fill: red;
         }
     </style>
 </head>
@@ -63,6 +69,16 @@
     <p id="freqDisplay">Hz</p>
     <p id="noteDisplay" class="red">Nota: --</p>
     <div id="intensityBar"><div id="intensityLevel"></div></div>
+    <div id="pentagramma">
+        <svg width="300" height="200">
+            <line x1="0" y1="20" x2="300" y2="20" stroke="white" stroke-width="2"/>
+            <line x1="0" y1="40" x2="300" y2="40" stroke="white" stroke-width="2"/>
+            <line x1="0" y1="60" x2="300" y2="60" stroke="white" stroke-width="2"/>
+            <line x1="0" y1="80" x2="300" y2="80" stroke="white" stroke-width="2"/>
+            <line x1="0" y1="100" x2="300" y2="100" stroke="white" stroke-width="2"/>
+            <circle id="nota" class="nota" cx="150" cy="60" r="5"/>
+        </svg>
+    </div>
     <script>
         const noteFrequencies = {
             "C0": 16.35, "C#0": 17.32, "D0": 18.35, "D#0": 19.45, "E0": 20.60, "F0": 21.83, "F#0": 23.12, "G0": 24.50, "G#0": 25.96, "A0": 27.50, "A#0": 29.14, "B0": 30.87,
@@ -71,6 +87,11 @@
             "C3": 130.81, "C#3": 138.59, "D3": 146.83, "D#3": 155.56, "E3": 164.81, "F3": 174.61, "F#3": 185.00, "G3": 196.00, "G#3": 207.65, "A3": 220.00, "A#3": 233.08, "B3": 246.94,
             "C4": 261.63, "C#4": 277.18, "D4": 293.66, "D#4": 311.13, "E4": 329.63, "F4": 349.23, "F#4": 369.99, "G4": 392.00, "G#4": 415.30, "A4": 440.00, "A#4": 466.16, "B4": 493.88,
             "C5": 523.25, "C#5": 554.37, "D5": 587.33, "D#5": 622.25, "E5": 659.25, "F5": 698.46, "F#5": 739.99, "G5": 783.99, "G#5": 830.61, "A5": 880.00, "A#5": 932.33, "B5": 987.77
+        };
+
+        const notePositions = {
+            "C4": 100, "C#4": 95, "D4": 90, "D#4": 85, "E4": 80, "F4": 75, "F#4": 70, "G4": 65, "G#4": 60, "A4": 55, "A#4": 50, "B4": 45,
+            "C5": 40, "C#5": 35, "D5": 30, "D#5": 25, "E5": 20, "F5": 15, "F#5": 10, "G5": 5, "G#5": 0, "A5": -5, "A#5": -10, "B5": -15
         };
 
         async function startPitchDetection() {
@@ -100,12 +121,20 @@
                     document.getElementById("noteDisplay").innerText = `Nota: ${closestNote[0]}`;
                     document.getElementById("noteDisplay").className = 
                         Math.abs(closestNote[1] - fundamentalFreq) < 1 ? "green" : "red";
+
+                    const note = closestNote[0];
+                    document.getElementById("nota").setAttribute("cy", notePositions[note] || 60);
+                    if (note.includes("#")) {
+                        // Show sharp symbol if it's a sharp note
+                        const nota = document.getElementById("nota");
+                        nota.innerHTML = '#';
+                    }
                 } else {
                     document.getElementById("freqDisplay").innerText = `Frequenza: -- Hz`;
                     document.getElementById("noteDisplay").innerText = `Nota: --`;
                     document.getElementById("noteDisplay").className = "red";
                 }
-                setTimeout(detectPitch, 100); // Aggiorna il pitch ogni 125 ms
+                setTimeout(detectPitch, 100); // Aggiorna il pitch ogni 100 ms
             }
             detectPitch();
         }
