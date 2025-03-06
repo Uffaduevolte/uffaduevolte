@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Voice Tuner</title>
     <style>
         body {
@@ -58,6 +58,8 @@
         }
         #pentagramma {
             margin-top: 20px;
+            position: relative;
+            height: 200px;
         }
         .nota {
             fill: red;
@@ -84,6 +86,17 @@
             height: 10px;
             background-color: red;
             border-radius: 50%;
+        }
+        @media screen and (orientation:landscape) {
+            body {
+                transform: rotate(90deg);
+                transform-origin: left top;
+                width: 100vh;
+                overflow-x: hidden;
+                position: absolute;
+                top: 100%;
+                left: 0;
+            }
         }
     </style>
 </head>
@@ -160,7 +173,7 @@
                     document.getElementById("noteDisplay").innerText = `Nota: --`;
                     document.getElementById("noteDisplay").className = "red";
                 }
-                setTimeout(detectPitch, 100); // Aggiorna il pitch ogni 100 ms
+                setTimeout(detectPitch, 250); // Aggiorna il pitch ogni 250 ms
             }
             detectPitch();
         }
