@@ -46,11 +46,11 @@
             left: 50%;
             transform: translateX(-50%); /* Centra l'immagine */
             z-index: -1;
-            opacity: 1;
+            opacity: 0.5;
         }
         #my-channel {
             margin-top: 20px;
-            font-size: 1em;
+            font-size: 1.5em;
             position: fixed;
             bottom: 10px; /* Posiziona il testo sotto l'immagine */
             left: 50%;
@@ -60,7 +60,7 @@
 </head>
 <body>
     <h1>Voice Tuner</h1>
-    <p id="freqDisplay"> -- Hz</p>
+    <p id="freqDisplay">Frequenza: -- Hz</p>
     <p id="noteDisplay" class="red">Nota: --</p>
     <div id="intensityBar"><div id="intensityLevel"></div></div>
     <script>
@@ -94,14 +94,14 @@
 
                 let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
                 if (fundamentalFreq > 0) {
-                    document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
+                    document.getElementById("freqDisplay").innerText = `Frequenza: ${fundamentalFreq.toFixed(2)} Hz`;
                     let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) => 
                         Math.abs(curr[1] - fundamentalFreq) < Math.abs(prev[1] - fundamentalFreq) ? curr : prev);
                     document.getElementById("noteDisplay").innerText = `Nota: ${closestNote[0]}`;
                     document.getElementById("noteDisplay").className = 
                         Math.abs(closestNote[1] - fundamentalFreq) < 1 ? "green" : "red";
                 }
-                requestAnimationFrame(detectPitch);
+                setTimeout(detectPitch, 125); // Aggiorna il pitch ogni 125 ms
             }
             detectPitch();
         }
@@ -125,7 +125,7 @@
     </script>
     <img id="immagine-sfondo" src="images/MiaFaccia001.jpg" alt="Sfondo">
     <div id="my-channel">
-        <a href="https://youtube.com/@marcellomazzotti?si=ujMxAi8PYidn_zSA" target="_blank">My Channel</a>
+        <a href="URL_DEL_TUO_COLLEGAMENTO_IPERTESTUALE" target="_blank">My Channel</a>
     </div>
 </body>
 </html>
