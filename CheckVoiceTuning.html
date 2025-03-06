@@ -101,7 +101,7 @@
                     document.getElementById("noteDisplay").className = 
                         Math.abs(closestNote[1] - fundamentalFreq) < 1 ? "green" : "red";
                 }
-                setTimeout(detectPitch, 125); // Aggiorna il pitch ogni 125 ms
+                setTimeout(detectPitch, 100); // Aggiorna il pitch ogni 100 ms
             }
             detectPitch();
         }
