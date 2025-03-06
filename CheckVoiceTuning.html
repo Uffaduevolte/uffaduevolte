@@ -5,7 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Voice Tuner</title>
     <style>
-        /* ... (stili esistenti) ... */
+        body {
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #f39c12;
+        }
+        #freqDisplay, #noteDisplay {
+            font-size: 2em;
+            margin-top: 10px;
+        }
+        #noteDisplay {
+            font-weight: bold;
+        }
+        .red { color: red; }
+        .green { color: limegreen; }
+        #intensityBar {
+            width: 100%;
+            height: 20px;
+            background-color: #555;
+            margin-top: 20px;
+            position: relative;
+            border-radius: 10px;
+        }
+        #intensityLevel {
+            height: 100%;
+            width: 0%;
+            background-color: #f39c12;
+            border-radius: 10px;
+        }
+        #immagine-sfondo {
+            width: 25%;
+            height: auto;
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: -1;
+            opacity: 1;
+        }
+        #my-channel {
+            margin-top: 20px;
+            font-size: 1em;
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #pentagramma {
+            margin-top: 20px;
+            position: relative;
+            height: 200px;
+        }
+        .nota {
+            fill: red;
+        }
+        .stave {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .line {
+            height: 2px;
+            background-color: white;
+            margin: 10px 0;
+        }
+        .grey-line {
+            height: 2px;
+            background-color: grey;
+            margin: 20px 0;
+        }
+        .note {
+            position: absolute;
+            width: 10px; /* width should be the same as the space between lines */
+            height: 10px; /* height should be the same as the space between lines */
+            background-color: red;
+            border-radius: 50%;
+        }
+        @media screen and (orientation:landscape) {
+            body {
+                transform: rotate(90deg);
+                transform-origin: left top;
+                width: 100vh;
+                overflow-x: hidden;
+                position: absolute;
+                top: 100%;
+                left: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -33,11 +125,21 @@
     </div>
     <script>
         const noteFrequencies = {
-            /* ... (frequenze esistenti) ... */
+            "C0": 16.35, "C#0": 17.32, "D0": 18.35, "D#0": 19.45, "E0": 20.60, "F0": 21.83, "F#0": 23.12, "G0": 24.50, "G#0": 25.96, "A0": 27.50, "A#0": 29.14, "B0": 30.87,
+            "C1": 32.70, "C#1": 34.65, "D1": 36.71, "D#1": 38.89, "E1": 41.20, "F1": 43.65, "F#1": 46.25, "G1": 49.00, "G#1": 51.91, "A1": 55.00, "A#1": 58.27, "B1": 61.74,
+            "C2": 65.41, "C#2": 69.30, "D2": 73.42, "D#2": 77.78, "E2": 82.41, "F2": 87.31, "F#2": 92.50, "G2": 98.00, "G#2": 103.83, "A2": 110.00, "A#2": 116.54, "B2": 123.47,
+            "C3": 130.81, "C#3": 138.59, "D3": 146.83, "D#3": 155.56, "E3": 164.81, "F3": 174.61, "F#3": 185.00, "G3": 196.00, "G#3": 207.65, "A3": 220.00, "A#3": 233.08, "B3": 246.94,
+            "C4": 261.63, "C#4": 277.18, "D4": 293.66, "D#4": 311.13, "E4": 329.63, "F4": 349.23, "F#4": 369.99, "G4": 392.00, "G#4": 415.30, "A4": 440.00, "A#4": 466.16, "B4": 493.88,
+            "C5": 523.25, "C#5": 554.37, "D5": 587.33, "D#5": 622.25, "E5": 659.25, "F5": 698.46, "F#5": 739.99, "G5": 783.99, "G#5": 830.61, "A5": 880.00, "A#5": 932.33, "B5": 987.77
         };
 
         const notePositions = {
-            /* ... (posizioni note esistenti) ... */
+            "C0": 240, "C#0": 235, "D0": 230, "D#0": 225, "E0": 220, "F0": 215, "F#0": 210, "G0": 205, "G#0": 200, "A0": 195, "A#0": 190, "B0": 185,
+            "C1": 180, "C#1": 175, "D1": 170, "D#1": 165, "E1": 160, "F1": 155, "F#1": 150, "G1": 145, "G#1": 140, "A1": 135, "A#1": 130, "B1": 125,
+            "C2": 120, "C#2": 115, "D2": 110, "D#2": 105, "E2": 100, "F2": 95, "F#2": 90, "G2": 85, "G#2": 80, "A2": 75, "A#2": 70, "B2": 65,
+            "C3": 60, "C#3": 55, "D3": 50, "D#3": 45, "E3": 40, "F3": 35, "F#3": 30, "G3": 25, "G#3": 20, "A3": 15, "A#3": 10, "B3": 5,
+            "C4": 0, "C#4": -5, "D4": -10, "D#4": -15, "E4": -20, "F4": -25, "F#4": -30, "G4": -35, "G#4": -40, "A4": -45, "A#4": -50, "B4": -55,
+            "C5": -60, "C#5": -65, "D5": -70, "D#5": -75, "E5": -80, "F5": -85, "F#5": -90, "G5": -95, "G#5": -100, "A5": -105, "A#5": -110, "B5": -115
         };
 
         let lastNote = null; // Memorizza l'ultima nota rilevata
