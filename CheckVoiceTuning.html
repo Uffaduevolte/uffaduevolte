@@ -171,8 +171,8 @@
                     const note = closestNote[0];
                     document.getElementById("red-dot").style.top = `${notePositions[note] || 60}px`;
                 } else {
-                    document.getElementById("freqDisplay").innerText = `Frequenza: -- Hz`;
-                    document.getElementById("noteDisplay").innerText = `Nota: --`;
+                    document.getElementById("freqDisplay").innerText = `Hz`;
+                    document.getElementById("noteDisplay").innerText = `--`;
                     document.getElementById("noteDisplay").className = "red";
                 }
                 setTimeout(detectPitch, 250); // Update pitch every 250 ms
