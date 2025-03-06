@@ -82,8 +82,8 @@
         }
         .note {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 10px; /* width should be the same as the space between lines */
+            height: 10px; /* height should be the same as the space between lines */
             background-color: red;
             border-radius: 50%;
         }
@@ -158,6 +158,8 @@
                 document.getElementById("intensityLevel").style.width = `${intensity * 100}%`;
 
                 let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
+
+                // Apply a low-pass filter to focus on the fundamental frequency
                 if (fundamentalFreq > 0 && intensity > 0.01) {
                     document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
                     let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) =>
@@ -173,7 +175,7 @@
                     document.getElementById("noteDisplay").innerText = `Nota: --`;
                     document.getElementById("noteDisplay").className = "red";
                 }
-                setTimeout(detectPitch, 250); // Aggiorna il pitch ogni 250 ms
+                setTimeout(detectPitch, 250); // Update pitch every 250 ms
             }
             detectPitch();
         }
