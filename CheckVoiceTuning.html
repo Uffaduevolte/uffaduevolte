@@ -92,7 +92,7 @@
 <body>
     <h1>Voice Tuner</h1>
     <p id="freqDisplay">Hz</p>
-    <p id="noteDisplay" class="red">Nota: --</p>
+    <p id="noteDisplay" class="red">--</p>
     <div id="intensityBar"><div id="intensityLevel"></div></div>
     <div id="pentagramma">
         <div class="stave" id="treble-stave">
@@ -175,7 +175,7 @@
                 const note = closestNote[0];
                 document.getElementById("red-dot").style.top = `${notePositions[note] || 60}px`;
             } else {
-                document.getElementById("noteDisplay").innerText = `Nota: --`;
+                document.getElementById("noteDisplay").innerText = `--`;
                 document.getElementById("noteDisplay").className = "red";
             }
 
