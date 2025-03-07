@@ -150,7 +150,7 @@
                 maxVal = Math.max(maxVal, Math.abs(buffer[i]));
                 sum += buffer[i] * buffer[i];
             }
-            const intensity = Math.sqrt(sum / buffer.length);
+            const intensity = Math.sqrt(sum / buffer.length) * 10; // Increase sensitivity
             document.getElementById("intensityLevel").style.width = `${intensity * 100}%`;
 
             let fundamentalFreq = autoCorrelate(buffer, audioContext.sampleRate);
@@ -165,7 +165,7 @@
 
             document.getElementById("freqDisplay").innerText = `${fundamentalFreq.toFixed(2)} Hz`;
 
-            if (fundamentalFreq > 0 && intensity > 0.01) {
+            if (fundamentalFreq > 0) {
                 let closestNote = Object.entries(noteFrequencies).reduce((prev, curr) =>
                     Math.abs(curr[1] - fundamentalFreq) < Math.abs(prev[1] - fundamentalFreq) ? curr : prev);
                 document.getElementById("noteDisplay").innerText = `Nota: ${closestNote[0]}`;
@@ -198,7 +198,7 @@
             rms += val * val;
         }
         rms = Math.sqrt(rms / SIZE);
-        if (rms < 0.01) return -1;
+        if (rms < 0.01) return 0; // Changed to return 0 instead of -1
 
         let lastCorrelation = 1;
         for (let offset = 0; offset < MAX_SAMPLES; offset++) {
@@ -226,21 +226,21 @@
             let frequency = sampleRate / bestOffset;
             return correctOctave(frequency, rms);
         }
-        return -1;
+        return 0; // Changed to return 0 instead of -1
     }
 
     function correctOctave(frequency, rms) {
         while (frequency < 16.35) frequency *= 2;
         while (frequency > 987.77) frequency /= 2;
-        if (rms < 0.1) frequency = -1; // Ignora frequenze molto basse se l'intensità è troppo bassa
+        if (rms < 0.1) frequency = 0; // Changed to return 0 instead of -1
         return frequency;
     }
 
     startPitchDetection();
 </script>
-    <img id="immagine-sfondo" src="images/MiaFaccia001.jpg" alt="Sfondo">
-    <div id="my-channel">
-        <a href="https://youtube.com/playlist?list=PLFsPt7w5CeuzdK7t2GE93wnO6iOgR2NRj&si=37oDtrgcJ1SX-fAP" target="_blank">My Channel</a>
-    </div>
+<img id="immagine-sfondo" src="images/MiaFaccia001.jpg" alt="Sfondo">
+<div id="my-channel">
+    <a href="https://youtube.com/playlist?list=PLFsPt7w5CeuzdK7t2GE93wnO6iOgR2NRj&si=37oDtrgcJ1SX-fAP" target="_blank">My Channel</a>
+</div>
 </body>
 </html>
