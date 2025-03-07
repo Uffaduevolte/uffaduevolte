@@ -1,1 +1,108 @@
-1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        #sudoku-board {
+            display: grid;
+            grid-template-columns: repeat(9, 50px);
+            grid-template-rows: repeat(9, 50px);
+            gap: 1px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        input[type="number"] {
+            width: 48px;
+            height: 48px;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sudoku Game</h1>
+    <div id="sudoku-board"></div>
+    <button id="solve-button">Solve</button>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('sudoku-board');
+            const solveButton = document.getElementById('solve-button');
+
+            // Create the Sudoku board
+            for (let i = 0; i < 81; i++) {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.min = '1';
+                input.max = '9';
+                board.appendChild(input);
+            }
+
+            solveButton.addEventListener('click', () => {
+                const inputs = document.querySelectorAll('#sudoku-board input');
+                const board = Array.from(inputs).map(input => input.value ? parseInt(input.value) : 0);
+                if (solveSudoku(board)) {
+                    inputs.forEach((input, index) => {
+                        input.value = board[index];
+                    });
+                } else {
+                    alert('No solution found!');
+                }
+            });
+
+            function solveSudoku(board) {
+                const findEmpty = (board) => {
+                    for (let i = 0; i < 81; i++) {
+                        if (board[i] === 0) return i;
+                    }
+                    return null;
+                };
+
+                const isSafe = (board, num, pos) => {
+                    const row = Math.floor(pos / 9);
+                    const col = pos % 9;
+                    for (let i = 0; i < 9; i++) {
+                        if (board[row * 9 + i] === num || board[i * 9 + col] === num) return false;
+                    }
+                    const startRow = Math.floor(row / 3) * 3;
+                    const startCol = Math.floor(col / 3) * 3;
+                    for (let i = startRow; i < startRow + 3; i++) {
+                        for (let j = startCol; j < startCol + 3; j++) {
+                            if (board[i * 9 + j] === num) return false;
+                        }
+                    }
+                    return true;
+                };
+
+                const solve = (board) => {
+                    const empty = findEmpty(board);
+                    if (empty === null) return true;
+                    for (let num = 1; num <= 9; num++) {
+                        if (isSafe(board, num, empty)) {
+                            board[empty] = num;
+                            if (solve(board)) return true;
+                            board[empty] = 0;
+                        }
+                    }
+                    return false;
+                };
+
+                return solve(board);
+            }
+        });
+    </script>
+</body>
+</html>
