@@ -70,23 +70,31 @@
     <script>
         const cells = document.querySelectorAll('.cell');
         const resetButton = document.getElementById('reset');
-        const board = Array(9).fill(null);
+        let board = Array(9).fill(null);
         const humanPlayer = 'X';
         const aiPlayer = 'O';
+        let gameOver = false;
 
         cells.forEach(cell => cell.addEventListener('click', handleMove));
         resetButton.addEventListener('click', resetGame);
 
         function handleMove(event) {
+            if (gameOver) return;
             const index = event.target.dataset.index;
             if (!board[index]) {
                 event.target.textContent = humanPlayer;
                 board[index] = humanPlayer;
-                if (!checkWin(board, humanPlayer) && !isTie()) {
+                if (checkWin(board, humanPlayer)) {
+                    gameOver = true;
+                    return;
+                }
+                if (!isTie()) {
                     const bestMove = minimax(board, aiPlayer).index;
                     board[bestMove] = aiPlayer;
                     cells[bestMove].textContent = aiPlayer;
-                    checkWin(board, aiPlayer);
+                    if (checkWin(board, aiPlayer)) {
+                        gameOver = true;
+                    }
                 }
             }
         }
@@ -114,6 +122,7 @@
         function isTie() {
             if (board.every(cell => cell)) {
                 cells.forEach(cell => cell.style.backgroundColor = '#f99');
+                gameOver = true;
                 return true;
             }
             return false;
@@ -125,6 +134,7 @@
                 cell.textContent = '';
                 cell.style.backgroundColor = '';
             });
+            gameOver = false;
         }
 
         function minimax(newBoard, player) {
