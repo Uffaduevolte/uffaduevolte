@@ -48,6 +48,7 @@
         #face-img {
             margin-top: 20px;
             width: 25%;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -66,10 +67,13 @@
     </div>
     <button id="reset">Reset</button>
     <img id="face-img" src="images/MiaFaccia001.jpg" alt="Mia Faccia">
+    <audio id="laugh-sound" src="/Sounds/RisataGhigno.m4a"></audio>
     
     <script>
         const cells = document.querySelectorAll('.cell');
         const resetButton = document.getElementById('reset');
+        const faceImg = document.getElementById('face-img');
+        const laughSound = document.getElementById('laugh-sound');
         let board = Array(9).fill(null);
         const humanPlayer = 'X';
         const aiPlayer = 'O';
@@ -77,6 +81,7 @@
 
         cells.forEach(cell => cell.addEventListener('click', handleMove));
         resetButton.addEventListener('click', resetGame);
+        faceImg.addEventListener('click', playLaughSound);
 
         function handleMove(event) {
             if (gameOver) return;
@@ -86,6 +91,7 @@
                 board[index] = humanPlayer;
                 if (checkWin(board, humanPlayer)) {
                     gameOver = true;
+                    playLaughSound();
                     return;
                 }
                 if (!isTie()) {
@@ -94,6 +100,7 @@
                     cells[bestMove].textContent = aiPlayer;
                     if (checkWin(board, aiPlayer)) {
                         gameOver = true;
+                        playLaughSound();
                     }
                 }
             }
@@ -123,6 +130,7 @@
             if (board.every(cell => cell)) {
                 cells.forEach(cell => cell.style.backgroundColor = '#f99');
                 gameOver = true;
+                playLaughSound();
                 return true;
             }
             return false;
@@ -185,6 +193,10 @@
                 }
             }
             return bestMove;
+        }
+
+        function playLaughSound() {
+            laughSound.play();
         }
     </script>
 </body>
