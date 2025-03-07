@@ -26,6 +26,10 @@
             font-size: 20px;
         }
 
+        input[type="number"].invalid {
+            background-color: #ffcccc;
+        }
+
         button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -37,22 +41,28 @@
     <h1>Sudoku Game</h1>
     <div id="sudoku-board"></div>
     <button id="solve-button">Solve</button>
+    <img src="/Images/MiaFacccia01.jpg" style="width: 25%; margin-top: 20px;" alt="Image">
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const board = document.getElementById('sudoku-board');
             const solveButton = document.getElementById('solve-button');
 
             // Create the Sudoku board
+            const inputs = [];
             for (let i = 0; i < 81; i++) {
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.min = '1';
                 input.max = '9';
+                input.addEventListener('input', validateInput);
+                inputs.push(input);
                 board.appendChild(input);
             }
 
+            // Randomly fill some cells with valid numbers
+            randomlyFillBoard(inputs);
+
             solveButton.addEventListener('click', () => {
-                const inputs = document.querySelectorAll('#sudoku-board input');
                 const board = Array.from(inputs).map(input => input.value ? parseInt(input.value) : 0);
                 if (solveSudoku(board)) {
                     inputs.forEach((input, index) => {
@@ -62,6 +72,33 @@
                     alert('No solution found!');
                 }
             });
+
+            function randomlyFillBoard(inputs) {
+                const filledCells = new Set();
+                while (filledCells.size < 20) {
+                    const index = Math.floor(Math.random() * 81);
+                    const num = Math.floor(Math.random() * 9) + 1;
+                    if (isSafe(toArray(inputs), num, index)) {
+                        inputs[index].value = num;
+                        filledCells.add(index);
+                    }
+                }
+            }
+
+            function toArray(inputs) {
+                return inputs.map(input => input.value ? parseInt(input.value) : 0);
+            }
+
+            function validateInput(event) {
+                const input = event.target;
+                const value = input.value ? parseInt(input.value) : 0;
+                const index = inputs.indexOf(input);
+                if (isSafe(toArray(inputs), value, index)) {
+                    input.classList.remove('invalid');
+                } else {
+                    input.classList.add('invalid');
+                }
+            }
 
             function solveSudoku(board) {
                 const findEmpty = (board) => {
