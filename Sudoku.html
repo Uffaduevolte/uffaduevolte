@@ -76,6 +76,12 @@
         .header img {
             width: 12.5%; /* 1/8 of the original size */
         }
+        .dark-grid {
+            background-color: #f0f0f0;
+        }
+        .light-grid {
+            background-color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -106,6 +112,12 @@
                 // Add double border classes to the first, fourth, seventh, and last rows and columns
                 if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 8) input.classList.add('double-left-border');
                 if (Math.floor(i / 9) === 0 || Math.floor(i / 9) === 3 || Math.floor(i / 9) === 6 || Math.floor(i / 9) === 8) input.classList.add('double-top-border');
+
+                // Add alternating background colors for 3x3 grids
+                const row = Math.floor(i / 9);
+                const col = i % 9;
+                const isDarkGrid = (Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0;
+                input.classList.add(isDarkGrid ? 'dark-grid' : 'light-grid');
 
                 inputs.push(input);
                 board.appendChild(input);
