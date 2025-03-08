@@ -31,6 +31,17 @@
             padding: 10px 20px;
             font-size: 16px;
         }
+        .number-buttons {
+            margin-top: 20px;
+            display: none;
+            justify-content: center;
+        }
+        .number-buttons button {
+            margin: 5px;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
         .double-border {
             border-width: 4px;
         }
@@ -47,18 +58,23 @@
     <div id="sudoku-board"></div>
     <button id="solve-button">Solve</button>
     <img src="/images/MiaFacccia001.jpg" style="width: 25%; margin-top: 20px;" alt="MiaFaccia">
+    <div class="number-buttons" id="number-buttons">
+        <!-- Buttons will be added dynamically here -->
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const board = document.getElementById('sudoku-board');
             const solveButton = document.getElementById('solve-button');
+            const numberButtons = document.getElementById('number-buttons');
+            let selectedInput = null;
 
             // Create the Sudoku board
             const inputs = [];
             for (let i = 0; i < 81; i++) {
                 const input = document.createElement('input');
-                input.type = 'number';
-                input.min = '1';
-                input.max = '9';
+                input.type = 'text'; // Change type to text to prevent keyboard from appearing
+                input.readOnly = true; // Make input read-only to prevent manual input
+                input.addEventListener('click', () => showNumberButtons(input));
 
                 // Add double border classes to the first, fourth, seventh, and last rows and columns
                 if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 8) input.classList.add('double-left-border');
@@ -148,6 +164,25 @@
                         inputs[index].readOnly = true;
                         filledCells.add(index);
                     }
+                }
+            }
+
+            function showNumberButtons(input) {
+                selectedInput = input;
+                numberButtons.innerHTML = ''; // Clear existing buttons
+                for (let i = 1; i <= 9; i++) {
+                    const button = document.createElement('button');
+                    button.textContent = i;
+                    button.addEventListener('click', () => selectNumber(i));
+                    numberButtons.appendChild(button);
+                }
+                numberButtons.style.display = 'flex';
+            }
+
+            function selectNumber(num) {
+                if (selectedInput) {
+                    selectedInput.value = num;
+                    numberButtons.style.display = 'none'; // Hide buttons after selection
                 }
             }
 
