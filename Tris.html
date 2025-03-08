@@ -95,14 +95,26 @@
                     return;
                 }
                 if (!isTie()) {
-                    const bestMove = minimax(board, aiPlayer).index;
-                    board[bestMove] = aiPlayer;
-                    cells[bestMove].textContent = aiPlayer;
-                    if (checkWin(board, aiPlayer)) {
-                        gameOver = true;
-                        playLaughSound();
-                    }
+                    makeComputerMove();
                 }
+            }
+        }
+
+        function makeComputerMove() {
+            const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(val => val !== null);
+            if (emptyCells.length === 9) {
+                // First move is random
+                const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[randomIndex] = aiPlayer;
+                cells[randomIndex].textContent = aiPlayer;
+            } else {
+                const bestMove = minimax(board, aiPlayer).index;
+                board[bestMove] = aiPlayer;
+                cells[bestMove].textContent = aiPlayer;
+            }
+            if (checkWin(board, aiPlayer)) {
+                gameOver = true;
+                playLaughSound();
             }
         }
 
