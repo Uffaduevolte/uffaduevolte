@@ -48,6 +48,19 @@
         .left-border {
             border-left-width: 4px;
         }
+
+        .double-thick-border {
+            border-width: 8px;
+        }
+
+        .double-top-border {
+            border-top-width: 8px;
+        }
+
+        .double-left-border {
+            border-left-width: 8px;
+        }
+
     </style>
 </head>
 <body>
@@ -72,6 +85,10 @@
                 // Add thick border classes
                 if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6) input.classList.add('left-border');
                 if (Math.floor(i / 9) % 3 === 0) input.classList.add('top-border');
+
+                // Add double thick border classes
+                if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 9) input.classList.add('double-left-border');
+                if (Math.floor(i / 9) % 3 === 0 || Math.floor(i / 9) === 9) input.classList.add('double-top-border');
 
                 inputs.push(input);
                 board.appendChild(input);
