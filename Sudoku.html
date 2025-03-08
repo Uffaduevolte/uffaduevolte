@@ -181,14 +181,14 @@
                 const input = event.target;
                 const value = input.value ? parseInt(input.value) : 0;
                 const index = inputs.indexOf(input);
-                if (isSafe(toArray(inputs), value, index)) {
-                    input.classList.remove('invalid');
-                } else {
+                if (!isSafe(toArray(inputs), value, index)) {
                     input.classList.add('invalid');
                     input.value = ''; // Clear the invalid input
                     if (navigator.vibrate) {
                         navigator.vibrate(250); // Vibrate for 250 milliseconds
                     }
+                } else {
+                    input.classList.remove('invalid');
                 }
             }
 
