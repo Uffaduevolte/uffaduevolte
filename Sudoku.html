@@ -9,7 +9,6 @@
             font-family: Arial, sans-serif;
             text-align: center;
         }
-
         #sudoku-board {
             display: grid;
             grid-template-columns: repeat(9, 40px);
@@ -18,7 +17,6 @@
             justify-content: center;
             margin: 20px auto;
         }
-
         input[type="number"] {
             width: 38px;
             height: 38px;
@@ -26,41 +24,32 @@
             font-size: 18px;
             border: 1px solid #000;
         }
-
         input[type="number"].invalid {
             background-color: #ffcccc;
         }
-
         button {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
         }
-
         .thick-border {
             border-width: 4px;
         }
-
         .top-border {
             border-top-width: 4px;
         }
-
         .left-border {
             border-left-width: 4px;
         }
-
         .double-thick-border {
             border-width: 8px;
         }
-
         .double-top-border {
             border-top-width: 8px;
         }
-
         .double-left-border {
             border-left-width: 8px;
         }
-
     </style>
 </head>
 <body>
@@ -181,9 +170,8 @@
                 const input = event.target;
                 const value = input.value ? parseInt(input.value) : 0;
                 const index = inputs.indexOf(input);
-                if (!isSafe(toArray(inputs), value, index)) {
+                if (value && !isSafe(toArray(inputs), value, index)) {
                     input.classList.add('invalid');
-                    input.value = ''; // Clear the invalid input
                     if (navigator.vibrate) {
                         navigator.vibrate(250); // Vibrate for 250 milliseconds
                     }
