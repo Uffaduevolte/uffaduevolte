@@ -113,6 +113,7 @@
             const hardButton = document.getElementById('hard-button');
             const difficultyButtons = document.getElementById('difficulty-buttons');
             let selectedInput = null;
+            let solution = [];
 
             easyButton.addEventListener('click', () => startGame(40));
             mediumButton.addEventListener('click', () => startGame(33));
@@ -126,7 +127,7 @@
                     const input = document.createElement('input');
                     input.type = 'text'; // Change type to text to prevent keyboard from appearing
                     input.readOnly = true; // Make input read-only to prevent manual input
-                    input.addEventListener('click', () => showNumberButtons(input));
+                    input.addEventListener('click', () => showNumberButtons(input, i));
 
                     // Add double border classes to the first, fourth, seventh, and last rows and columns
                     if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 8) input.classList.add('double-left-border');
@@ -145,6 +146,7 @@
                 // Generate a complete, valid Sudoku board
                 const sudokuBoard = Array(81).fill(0);
                 generateSudoku(sudokuBoard);
+                solution = [...sudokuBoard];
 
                 // Randomly hide some cells to create the puzzle
                 hideCells(sudokuBoard, inputs, visibleNumbers);
@@ -215,7 +217,7 @@
                 }
             }
 
-            function showNumberButtons(input) {
+            function showNumberButtons(input, index) {
                 selectedInput = input;
                 numberButtons.innerHTML = ''; // Clear existing buttons
 
@@ -229,7 +231,7 @@
                     for (let num = 1; num <= 9; num++) {
                         const button = document.createElement('button');
                         button.textContent = num;
-                        button.addEventListener('click', () => selectNumber(num));
+                        button.addEventListener('click', () => selectNumber(num, index));
                         numberButtons.appendChild(button);
                     }
                     numberButtons.style.display = 'flex';
@@ -237,42 +239,16 @@
                 }
             }
 
-            function getPossibleNumbers(inputs, index) {
-                const row = Math.floor(index / 9);
-                const col = index % 9;
-                const numbers = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-                // Check row
-                for (let i = 0; i < 9; i++) {
-                    if (inputs[row * 9 + i].value) {
-                        numbers.delete(parseInt(inputs[row * 9 + i].value));
-                    }
-                }
-
-                // Check column
-                for (let i = 0; i < 9; i++) {
-                    if (inputs[i * 9 + col].value) {
-                        numbers.delete(parseInt(inputs[i * 9 + col].value));
-                    }
-                }
-
-                // Check 3x3 grid
-                const startRow = Math.floor(row / 3) * 3;
-                const startCol = Math.floor(col / 3) * 3;
-                for (let i = startRow; i < startRow + 3; i++) {
-                    for (let j = startCol; j < startCol + 3; j++) {
-                        if (inputs[i * 9 + j].value) {
-                            numbers.delete(parseInt(inputs[i * 9 + j].value));
+            function selectNumber(num, index) {
+                if (selectedInput) {
+                    if (solution[index] === num) {
+                        selectedInput.value = num;
+                    } else {
+                        selectedInput.value = '';
+                        if (navigator.vibrate) {
+                            navigator.vibrate(250); // Vibrate for 250 milliseconds
                         }
                     }
-                }
-
-                return Array.from(numbers);
-            }
-
-            function selectNumber(num) {
-                if (selectedInput) {
-                    selectedInput.value = num;
                     numberButtons.style.display = 'none'; // Hide buttons after selection
                 }
             }
