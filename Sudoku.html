@@ -73,8 +73,12 @@
             align-items: flex-end;
             margin: 20px;
         }
+        .header h1 {
+            margin-bottom: 0;
+        }
         .header img {
             width: 12.5%; /* 1/8 of the original size */
+            align-self: flex-end;
         }
         .dark-grid {
             background-color: #f0f0f0;
@@ -198,15 +202,7 @@
             function showNumberButtons(input, index) {
                 selectedInput = input;
                 numberButtons.innerHTML = ''; // Clear existing buttons
-                for (let num = 1; num <= 9; num++) {
-                    const button = document.createElement('button');
-                    button.textContent = num;
-                    button.addEventListener('click', () => selectNumber(num, index));
-                    numberButtons.appendChild(button);
-                }
-                numberButtons.style.display = 'flex';
 
-                // Show eraser button if the cell is already filled
                 if (input.value) {
                     eraserButton.style.display = 'block';
                     eraserButton.onclick = () => {
@@ -214,6 +210,13 @@
                         eraserButton.style.display = 'none';
                     };
                 } else {
+                    for (let num = 1; num <= 9; num++) {
+                        const button = document.createElement('button');
+                        button.textContent = num;
+                        button.addEventListener('click', () => selectNumber(num, index));
+                        numberButtons.appendChild(button);
+                    }
+                    numberButtons.style.display = 'flex';
                     eraserButton.style.display = 'none';
                 }
             }
