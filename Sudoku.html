@@ -111,13 +111,15 @@
             const easyButton = document.getElementById('easy-button');
             const mediumButton = document.getElementById('medium-button');
             const hardButton = document.getElementById('hard-button');
+            const difficultyButtons = document.getElementById('difficulty-buttons');
             let selectedInput = null;
 
-            easyButton.addEventListener('click', () => startGame(25));
+            easyButton.addEventListener('click', () => startGame(40));
             mediumButton.addEventListener('click', () => startGame(33));
-            hardButton.addEventListener('click', () => startGame(40));
+            hardButton.addEventListener('click', () => startGame(20));
 
             function startGame(visibleNumbers) {
+                difficultyButtons.style.display = 'none'; // Hide difficulty buttons
                 const inputs = [];
                 board.innerHTML = ''; // Clear the board
                 for (let i = 0; i < 81; i++) {
