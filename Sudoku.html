@@ -93,6 +93,11 @@
         <h1>Sudoku Game</h1>
         <img src="images/MiaFaccia001.jpg" alt="MiaFaccia">
     </div>
+    <div id="difficulty-buttons">
+        <button id="easy-button">Facile</button>
+        <button id="medium-button">Medio</button>
+        <button id="hard-button">Difficile</button>
+    </div>
     <div id="sudoku-board"></div>
     <div class="number-buttons" id="number-buttons">
         <!-- Buttons will be added dynamically here -->
@@ -103,36 +108,45 @@
             const board = document.getElementById('sudoku-board');
             const numberButtons = document.getElementById('number-buttons');
             const eraserButton = document.getElementById('eraser-button');
+            const easyButton = document.getElementById('easy-button');
+            const mediumButton = document.getElementById('medium-button');
+            const hardButton = document.getElementById('hard-button');
             let selectedInput = null;
 
-            // Create the Sudoku board
-            const inputs = [];
-            for (let i = 0; i < 81; i++) {
-                const input = document.createElement('input');
-                input.type = 'text'; // Change type to text to prevent keyboard from appearing
-                input.readOnly = true; // Make input read-only to prevent manual input
-                input.addEventListener('click', () => showNumberButtons(input, i));
+            easyButton.addEventListener('click', () => startGame(25));
+            mediumButton.addEventListener('click', () => startGame(33));
+            hardButton.addEventListener('click', () => startGame(40));
 
-                // Add double border classes to the first, fourth, seventh, and last rows and columns
-                if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 8) input.classList.add('double-left-border');
-                if (Math.floor(i / 9) === 0 || Math.floor(i / 9) === 3 || Math.floor(i / 9) === 6 || Math.floor(i / 9) === 8) input.classList.add('double-top-border');
+            function startGame(visibleNumbers) {
+                const inputs = [];
+                board.innerHTML = ''; // Clear the board
+                for (let i = 0; i < 81; i++) {
+                    const input = document.createElement('input');
+                    input.type = 'text'; // Change type to text to prevent keyboard from appearing
+                    input.readOnly = true; // Make input read-only to prevent manual input
+                    input.addEventListener('click', () => showNumberButtons(input, i));
 
-                // Add alternating background colors for 3x3 grids
-                const row = Math.floor(i / 9);
-                const col = i % 9;
-                const isDarkGrid = (Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0;
-                input.classList.add(isDarkGrid ? 'dark-grid' : 'light-grid');
+                    // Add double border classes to the first, fourth, seventh, and last rows and columns
+                    if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 8) input.classList.add('double-left-border');
+                    if (Math.floor(i / 9) === 0 || Math.floor(i / 9) === 3 || Math.floor(i / 9) === 6 || Math.floor(i / 9) === 8) input.classList.add('double-top-border');
 
-                inputs.push(input);
-                board.appendChild(input);
+                    // Add alternating background colors for 3x3 grids
+                    const row = Math.floor(i / 9);
+                    const col = i % 9;
+                    const isDarkGrid = (Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0;
+                    input.classList.add(isDarkGrid ? 'dark-grid' : 'light-grid');
+
+                    inputs.push(input);
+                    board.appendChild(input);
+                }
+
+                // Generate a complete, valid Sudoku board
+                const sudokuBoard = Array(81).fill(0);
+                generateSudoku(sudokuBoard);
+
+                // Randomly hide some cells to create the puzzle
+                hideCells(sudokuBoard, inputs, visibleNumbers);
             }
-
-            // Generate a complete, valid Sudoku board
-            const sudokuBoard = Array(81).fill(0);
-            generateSudoku(sudokuBoard);
-
-            // Randomly hide some cells to create the puzzle
-            hideCells(sudokuBoard, inputs);
 
             function generateSudoku(board) {
                 solveSudoku(board);
@@ -187,9 +201,9 @@
                 }
             }
 
-            function hideCells(board, inputs) {
+            function hideCells(board, inputs, visibleNumbers) {
                 const filledCells = new Set();
-                while (filledCells.size < 40) { // Fill 40 cells instead of 20
+                while (filledCells.size < visibleNumbers) {
                     const index = Math.floor(Math.random() * 81);
                     if (!filledCells.has(index)) {
                         inputs[index].value = board[index];
