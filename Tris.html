@@ -35,8 +35,9 @@
             position: relative;
         }
         .cell img {
-            width: 25%;
-            height: auto;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             position: absolute;
         }
         #reset {
@@ -195,45 +196,4 @@
             for (const spot of availSpots) {
                 const move = {};
                 move.index = spot;
-                newBoard[spot] = player;
-
-                if (player === aiPlayer) {
-                    const result = minimax(newBoard, humanPlayer);
-                    move.score = result.score;
-                } else {
-                    const result = minimax(newBoard, aiPlayer);
-                    move.score = result.score;
-                }
-
-                newBoard[spot] = null;
-                moves.push(move);
-            }
-
-            let bestMove;
-            if (player === aiPlayer) {
-                let bestScore = -Infinity;
-                for (const move of moves) {
-                    if (move.score > bestScore) {
-                        bestScore = move.score;
-                        bestMove = move;
-                    }
-                }
-            } else {
-                let bestScore = Infinity;
-                for (const move of moves) {
-                    if (move.score < bestScore) {
-                        bestScore = move.score;
-                        bestMove = move;
-                    }
-                }
-            }
-            return bestMove;
-        }
-
-        function playLaughSound() {
-            console.log('playLaughSound called');
-            laughSound.play();
-        }
-    </script>
-</body>
-</html>
+                new
