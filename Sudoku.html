@@ -54,6 +54,13 @@
         .double-left-border {
             border-left-width: 4px;
         }
+        .eraser-button {
+            display: none;
+            margin: 2px;
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -64,11 +71,13 @@
     <div class="number-buttons" id="number-buttons">
         <!-- Buttons will be added dynamically here -->
     </div>
+    <button class="eraser-button" id="eraser-button">🩸</button>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const board = document.getElementById('sudoku-board');
             const solveButton = document.getElementById('solve-button');
             const numberButtons = document.getElementById('number-buttons');
+            const eraserButton = document.getElementById('eraser-button');
             let selectedInput = null;
 
             // Create the Sudoku board
@@ -180,6 +189,17 @@
                     numberButtons.appendChild(button);
                 }
                 numberButtons.style.display = 'flex';
+
+                // Show eraser button if the cell is already filled
+                if (input.value) {
+                    eraserButton.style.display = 'block';
+                    eraserButton.onclick = () => {
+                        input.value = '';
+                        eraserButton.style.display = 'none';
+                    };
+                } else {
+                    eraserButton.style.display = 'none';
+                }
             }
 
             function getPossibleNumbers(inputs, index) {
