@@ -121,12 +121,13 @@
 
         function makeComputerMove() {
             const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(val => val !== null);
-            // Ensure the first move is always in the center if it's available
             if (emptyCells.length === 9) {
-                board[0] = aiPlayer; // Making the first move intentionally bad
+                // First move is random
+                const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[randomIndex] = aiPlayer;
                 const img = document.createElement('img');
                 img.src = 'images/MiaFaccia001.jpg';
-                cells[0].appendChild(img);
+                cells[randomIndex].appendChild(img);
             } else {
                 const bestMove = minimax(board, aiPlayer).index;
                 board[bestMove] = aiPlayer;
