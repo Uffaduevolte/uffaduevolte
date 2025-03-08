@@ -136,7 +136,9 @@
                     // Add alternating background colors for 3x3 grids
                     const row = Math.floor(i / 9);
                     const col = i % 9;
-                    const isDarkGrid = (Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0;
+                    const subGridRow = Math.floor(row / 3);
+                    const subGridCol = Math.floor(col / 3);
+                    const isDarkGrid = (subGridRow + subGridCol) % 2 === 0;
                     input.classList.add(isDarkGrid ? 'dark-grid' : 'light-grid');
 
                     inputs.push(input);
