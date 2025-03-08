@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e Zug de Tris</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-image: url('images/SfondoNoceNazionale.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: #ffffff;
+            margin: 0;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 1px solid #ffffff;
+            cursor: pointer;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            position: relative;
+        }
+        .cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+        }
+        #reset {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #333333;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            border-radius: 12px; /* Spigoli arrotondati */
+            box-shadow: 0 4px #999; /* Effetto 3D */
+        }
+        #reset:active {
+            background-color: #555555;
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+        }
+        #my-channel {
+            margin-top: 20px;
+            color: blue; /* Cambia il colore a blu */
+            text-decoration: underline; /* Aggiunge la sottolineatura */
+            font-size: 1rem;
+        }
+        #my-channel:hover {
+            text-decoration: underline;
+        }
+        @keyframes blink {
+            0% { background-color: #9c9; }
+            50% { background-color: #1e1e1e; }
+            100% { background-color: #9c9; }
+        }
+    </style>
+</head>
+<body>
+    <h1>e Zùg de Tris</h1>
+    <div class="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+    <button id="reset">Scanzèla</button>
+    <audio id="laugh-sound" src="/Sounds/RisataGhigno.vaw"></audio>
+    <a id="my-channel" href="https://youtube.com/@marcellomazzotti?si=2uyLzj23WqdFtCBx">i mi pacéug</a>
+
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const resetButton = document.getElementById('reset');
+        const laughSound = document.getElementById('laugh-sound');
+        let board = Array(9).fill(null);
+        const humanPlayer = 'X';
+        const aiPlayer = 'O';
+        let gameOver = false;
+        let isFirstMove = true;
+
+        // Unlock audio on first user interaction
+        document.addEventListener('click', unlockAudio, { once: true });
+
+        function unlockAudio() {
+            laughSound.play().then(() => {
+                laughSound.pause();
+                laughSound.currentTime = 0;
+            });
+        }
+
+        cells.forEach(cell => cell.addEventListener('click', handleMove));
+        resetButton.addEventListener('click', resetGame);
+
+        function handleMove(event) {
+            if (gameOver) return;
+            const index = event.target.dataset.index;
+            if (!board[index]) {
+                event.target.textContent = humanPlayer;
+                board[index] = humanPlayer;
+                if (checkWin(board, humanPlayer)) {
+                    gameOver = true;
+                    playLaughSound();
+                    triggerWinEffects();
+                    return;
+                }
+                if (!isTie()) {
+                    makeComputerMove();
+                }
+            }
+        }
+
+        function makeComputerMove() {
+            const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(val => val !== null);
+
+            if (isFirstMove) {
+                const moveIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[moveIndex] = aiPlayer;
+                const img = document.createElement('img');
+                img.src = 'images/MiaFaccia001.jpg';
+                cells[moveIndex].appendChild(img);
+                isFirstMove = false;
+            } else {
+                const bestMove = minimax(board, aiPlayer).index;
+                board[bestMove] = aiPlayer;
+                const img = document.createElement('img');
+                img.src = 'images/MiaFaccia001.jpg';
+                cells[bestMove].appendChild(img);
+            }
+
+            if (checkWin(board, aiPlayer)) {
+                gameOver = true;
+                playLaughSound();
+                triggerWinEffects();
+            }
+        }
+
+        function checkWin(board, player) {
+            const winPatterns = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+            for (const pattern of winPatterns) {
+                if (pattern.every(index => board[index] === player)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function triggerWinEffects() {
+            const winPatterns = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+            for (const pattern of winPatterns) {
+                if (pattern.every(index => board[index] === humanPlayer || board[index] === aiPlayer)) {
+                    pattern.forEach(index => {
+                        cells[index].style.backgroundColor = '#9c9';
+                        cells[index].style.animation = 'blink 1s infinite';
+                    });
+                    navigator.vibrate(250);
+                }
+            }
+        }
+
+        function isTie() {
+            if (board.every(cell => cell)) {
+                cells.forEach(cell => cell.style.backgroundColor = '#f99');
+                gameOver = true;
+                playLaughSound();
+                return true;
+            }
+            return false;
+        }
+
+        function resetGame() {
+            board.fill(null);
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.style.backgroundColor = '';
+                cell.style.animation = '';
+                while (cell.firstChild) {
+                    cell.removeChild(cell.firstChild);
+                }
+            });
+            gameOver = false;
+            isFirstMove = true;
+        }
+
+        function minimax(newBoard, player) {
+            const availSpots = newBoard.map((cell, index) => cell === null ? index : null).filter(val => val !== null);
+
+            if (checkWin(newBoard, humanPlayer)) {
+                return { score: -10 };
+            } else if (checkWin(newBoard, aiPlayer)) {
+                return { score: 10 };
+            } else if (availSpots.length === 0) {
+                return { score: 0 };
+            }
+
+            const moves = [];
+            for (const spot of availSpots) {
+                const move = {};
+                move.index = spot;
+                newBoard[spot] = player;
+
+                if (player === aiPlayer) {
+                    const result = minimax(newBoard, humanPlayer);
+                    move.score = result.score;
+                } else {
+                    const result = minimax(newBoard, aiPlayer);
+                    move.score = result.score;
+                }
+
+                newBoard[spot] = null;
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === aiPlayer) {
+                let bestScore = -Infinity;
+                for (const move of moves) {
+                    if (move.score > bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (const move of moves) {
+                    if (move.score < bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            }
+            return bestMove;
+        }
+
+        function playLaughSound() {
+            console.log('playLaughSound called');
+            laughSound.play();
+        }
+    </script>
+</body>
+</html>
