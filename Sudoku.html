@@ -168,6 +168,10 @@
                     input.classList.remove('invalid');
                 } else {
                     input.classList.add('invalid');
+                    input.value = ''; // Clear the invalid input
+                    if (navigator.vibrate) {
+                        navigator.vibrate(250); // Vibrate for 250 milliseconds
+                    }
                 }
             }
 
