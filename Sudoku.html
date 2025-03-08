@@ -24,6 +24,7 @@
             height: 48px;
             text-align: center;
             font-size: 20px;
+            border: 1px solid #000;
         }
 
         input[type="number"].invalid {
@@ -34,6 +35,18 @@
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
+        }
+
+        .thick-border {
+            border-width: 2px;
+        }
+
+        .top-border {
+            border-top-width: 3px;
+        }
+
+        .left-border {
+            border-left-width: 3px;
         }
     </style>
 </head>
@@ -55,6 +68,11 @@
                 input.min = '1';
                 input.max = '9';
                 input.addEventListener('input', validateInput);
+
+                // Add thick border classes
+                if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6) input.classList.add('left-border');
+                if (Math.floor(i / 9) % 3 === 0) input.classList.add('top-border');
+
                 inputs.push(input);
                 board.appendChild(input);
             }
