@@ -79,6 +79,16 @@
         const aiPlayer = 'O';
         let gameOver = false;
 
+        // Unlock audio on first user interaction
+        document.addEventListener('click', unlockAudio, { once: true });
+
+        function unlockAudio() {
+            laughSound.play().then(() => {
+                laughSound.pause();
+                laughSound.currentTime = 0;
+            });
+        }
+
         cells.forEach(cell => cell.addEventListener('click', handleMove));
         resetButton.addEventListener('click', resetGame);
         faceImg.addEventListener('click', playLaughSound);
