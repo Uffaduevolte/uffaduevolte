@@ -88,6 +88,7 @@
         const humanPlayer = 'X';
         const aiPlayer = 'O';
         let gameOver = false;
+        let isFirstMove = true;
 
         // Unlock audio on first user interaction
         document.addEventListener('click', unlockAudio, { once: true });
@@ -121,11 +122,21 @@
 
         function makeComputerMove() {
             const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(val => val !== null);
-            const moveIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            board[moveIndex] = aiPlayer;
-            const img = document.createElement('img');
-            img.src = 'images/MiaFaccia001.jpg';
-            cells[moveIndex].appendChild(img);
+
+            if (isFirstMove) {
+                const moveIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[moveIndex] = aiPlayer;
+                const img = document.createElement('img');
+                img.src = 'images/MiaFaccia001.jpg';
+                cells[moveIndex].appendChild(img);
+                isFirstMove = false;
+            } else {
+                const bestMove = minimax(board, aiPlayer).index;
+                board[bestMove] = aiPlayer;
+                const img = document.createElement('img');
+                img.src = 'images/MiaFaccia001.jpg';
+                cells[bestMove].appendChild(img);
+            }
 
             if (checkWin(board, aiPlayer)) {
                 gameOver = true;
@@ -173,6 +184,57 @@
                 }
             });
             gameOver = false;
+            isFirstMove = true;
+        }
+
+        function minimax(newBoard, player) {
+            const availSpots = newBoard.map((cell, index) => cell === null ? index : null).filter(val => val !== null);
+
+            if (checkWin(newBoard, humanPlayer)) {
+                return { score: -10 };
+            } else if (checkWin(newBoard, aiPlayer)) {
+                return { score: 10 };
+            } else if (availSpots.length === 0) {
+                return { score: 0 };
+            }
+
+            const moves = [];
+            for (const spot of availSpots) {
+                const move = {};
+                move.index = spot;
+                newBoard[spot] = player;
+
+                if (player === aiPlayer) {
+                    const result = minimax(newBoard, humanPlayer);
+                    move.score = result.score;
+                } else {
+                    const result = minimax(newBoard, aiPlayer);
+                    move.score = result.score;
+                }
+
+                newBoard[spot] = null;
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === aiPlayer) {
+                let bestScore = -Infinity;
+                for (const move of moves) {
+                    if (move.score > bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (const move of moves) {
+                    if (move.score < bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            }
+            return bestMove;
         }
 
         function playLaughSound() {
