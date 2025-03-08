@@ -32,6 +32,12 @@
             cursor: pointer;
             background-color: #1e1e1e;
             color: #ffffff;
+            position: relative;
+        }
+        .cell img {
+            width: 25%;
+            height: auto;
+            position: absolute;
         }
         #reset {
             margin-top: 20px;
@@ -116,11 +122,15 @@
                 // First move is random
                 const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
                 board[randomIndex] = aiPlayer;
-                cells[randomIndex].textContent = aiPlayer;
+                const img = document.createElement('img');
+                img.src = 'images/MiaFaccia001.jpg';
+                cells[randomIndex].appendChild(img);
             } else {
                 const bestMove = minimax(board, aiPlayer).index;
                 board[bestMove] = aiPlayer;
-                cells[bestMove].textContent = aiPlayer;
+                const img = document.createElement('img');
+                img.src = 'images/MiaFaccia001.jpg';
+                cells[bestMove].appendChild(img);
             }
             if (checkWin(board, aiPlayer)) {
                 gameOver = true;
@@ -163,6 +173,9 @@
             cells.forEach(cell => {
                 cell.textContent = '';
                 cell.style.backgroundColor = '';
+                while (cell.firstChild) {
+                    cell.removeChild(cell.firstChild);
+                }
             });
             gameOver = false;
         }
