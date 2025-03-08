@@ -118,6 +118,7 @@
                 if (checkWin(board, humanPlayer)) {
                     gameOver = true;
                     playLaughSound();
+                    triggerWinEffects();
                     return;
                 }
                 if (!isTie()) {
@@ -147,6 +148,7 @@
             if (checkWin(board, aiPlayer)) {
                 gameOver = true;
                 playLaughSound();
+                triggerWinEffects();
             }
         }
 
@@ -163,15 +165,32 @@
             ];
             for (const pattern of winPatterns) {
                 if (pattern.every(index => board[index] === player)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function triggerWinEffects() {
+            const winPatterns = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+            for (const pattern of winPatterns) {
+                if (pattern.every(index => board[index] === humanPlayer || board[index] === aiPlayer)) {
                     pattern.forEach(index => {
                         cells[index].style.backgroundColor = '#9c9';
                         cells[index].style.animation = 'blink 1s infinite';
                     });
                     navigator.vibrate(250);
-                    return true;
                 }
             }
-            return false;
         }
 
         function isTie() {
@@ -205,4 +224,53 @@
                 return { score: -10 };
             } else if (checkWin(newBoard, aiPlayer)) {
                 return { score: 10 };
-            } else if (availSpots.length === 
+            } else if (availSpots.length === 0) {
+                return { score: 0 };
+            }
+
+            const moves = [];
+            for (const spot of availSpots) {
+                const move = {};
+                move.index = spot;
+                newBoard[spot] = player;
+
+                if (player === aiPlayer) {
+                    const result = minimax(newBoard, humanPlayer);
+                    move.score = result.score;
+                } else {
+                    const result = minimax(newBoard, aiPlayer);
+                    move.score = result.score;
+                }
+
+                newBoard[spot] = null;
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === aiPlayer) {
+                let bestScore = -Infinity;
+                for (const move of moves) {
+                    if (move.score > bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (const move of moves) {
+                    if (move.score < bestScore) {
+                        bestScore = move.score;
+                        bestMove = move;
+                    }
+                }
+            }
+            return bestMove;
+        }
+
+        function playLaughSound() {
+            console.log('playLaughSound called');
+            laughSound.play();
+        }
+    </script>
+</body>
+</html>
