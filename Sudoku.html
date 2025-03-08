@@ -32,23 +32,14 @@
             padding: 10px 20px;
             font-size: 16px;
         }
-        .thick-border {
+        .double-border {
             border-width: 4px;
         }
-        .top-border {
+        .double-top-border {
             border-top-width: 4px;
         }
-        .left-border {
-            border-left-width: 4px;
-        }
-        .double-thick-border {
-            border-width: 8px;
-        }
-        .double-top-border {
-            border-top-width: 8px;
-        }
         .double-left-border {
-            border-left-width: 8px;
+            border-left-width: 4px;
         }
     </style>
 </head>
@@ -71,13 +62,9 @@
                 input.max = '9';
                 input.addEventListener('input', validateInput);
 
-                // Add thick border classes
-                if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6) input.classList.add('left-border');
-                if (Math.floor(i / 9) % 3 === 0) input.classList.add('top-border');
-
-                // Add double thick border classes
-                if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 9) input.classList.add('double-left-border');
-                if (Math.floor(i / 9) % 3 === 0 || Math.floor(i / 9) === 9) input.classList.add('double-top-border');
+                // Add double border classes to the first, fourth, seventh, and last rows and columns
+                if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 8) input.classList.add('double-left-border');
+                if (Math.floor(i / 9) === 0 || Math.floor(i / 9) === 3 || Math.floor(i / 9) === 6 || Math.floor(i / 9) === 8) input.classList.add('double-top-border');
 
                 inputs.push(input);
                 board.appendChild(input);
