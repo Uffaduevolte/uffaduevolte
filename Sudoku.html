@@ -30,6 +30,8 @@
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
+            border-radius: 10px;
+            box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
         }
         .number-buttons {
             margin-top: 20px;
@@ -44,6 +46,8 @@
             width: 38px;
             height: 38px;
             font-size: 18px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
         .double-border {
             border-width: 4px;
@@ -60,14 +64,26 @@
             width: 38px;
             height: 38px;
             font-size: 18px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin: 20px;
+        }
+        .header img {
+            width: 12.5%; /* 1/8 of the original size */
         }
     </style>
 </head>
 <body>
-    <h1>Sudoku Game</h1>
+    <div class="header">
+        <h1>Sudoku Game</h1>
+        <img src="images/MiaFaccia001.jpg" alt="MiaFaccia">
+    </div>
     <div id="sudoku-board"></div>
-    <button id="solve-button">Solve</button>
-    <img src="images/MiaFaccia001.jpg" style="width: 25%; margin-top: 20px;" alt="M">
     <div class="number-buttons" id="number-buttons">
         <!-- Buttons will be added dynamically here -->
     </div>
@@ -75,7 +91,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const board = document.getElementById('sudoku-board');
-            const solveButton = document.getElementById('solve-button');
             const numberButtons = document.getElementById('number-buttons');
             const eraserButton = document.getElementById('eraser-button');
             let selectedInput = null;
@@ -102,17 +117,6 @@
 
             // Randomly hide some cells to create the puzzle
             hideCells(sudokuBoard, inputs);
-
-            solveButton.addEventListener('click', () => {
-                const board = Array.from(inputs).map(input => input.value ? parseInt(input.value) : 0);
-                if (solveSudoku(board)) {
-                    inputs.forEach((input, index) => {
-                        input.value = board[index];
-                    });
-                } else {
-                    alert('No solution found!');
-                }
-            });
 
             function generateSudoku(board) {
                 solveSudoku(board);
