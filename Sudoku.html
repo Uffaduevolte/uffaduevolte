@@ -170,13 +170,12 @@
             function showNumberButtons(input, index) {
                 selectedInput = input;
                 numberButtons.innerHTML = ''; // Clear existing buttons
-                const possibleNumbers = getPossibleNumbers(inputs, index);
-                possibleNumbers.forEach(num => {
+                for (let num = 1; num <= 9; num++) {
                     const button = document.createElement('button');
                     button.textContent = num;
-                    button.addEventListener('click', () => selectNumber(num));
+                    button.addEventListener('click', () => selectNumber(num, index));
                     numberButtons.appendChild(button);
-                });
+                }
                 numberButtons.style.display = 'flex';
             }
 
@@ -213,10 +212,18 @@
                 return Array.from(numbers);
             }
 
-            function selectNumber(num) {
+            function selectNumber(num, index) {
                 if (selectedInput) {
-                    selectedInput.value = num;
-                    numberButtons.style.display = 'none'; // Hide buttons after selection
+                    const possibleNumbers = getPossibleNumbers(inputs, index);
+                    if (possibleNumbers.includes(num)) {
+                        selectedInput.value = num;
+                        numberButtons.style.display = 'none'; // Hide buttons after selection
+                    } else {
+                        selectedInput.value = ''; // Clear the input value
+                        if (navigator.vibrate) {
+                            navigator.vibrate(250); // Vibrate for 250 milliseconds
+                        }
+                    }
                 }
             }
 
