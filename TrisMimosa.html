@@ -76,7 +76,7 @@
     </style>
 </head>
 <body>
-    <h1>e Zùg de Tris</h1>
+    <h1>e Tris par la fèsta dla dòna</h1>
     <div class="board">
         <div class="cell" data-index="0"></div>
         <div class="cell" data-index="1"></div>
@@ -140,14 +140,14 @@
                 const moveIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
                 board[moveIndex] = aiPlayer;
                 const img = document.createElement('img');
-                img.src = 'images/MiaFaccia001.jpg';
+                img.src = 'images/mimosa_tree.jpg';
                 cells[moveIndex].appendChild(img);
                 isFirstMove = false;
             } else {
                 const bestMove = minimax(board, aiPlayer).index;
                 board[bestMove] = aiPlayer;
                 const img = document.createElement('img');
-                img.src = 'images/MiaFaccia001.jpg';
+                img.src = 'images/mimosa_tree.jpg';
                 cells[bestMove].appendChild(img);
             }
 
