@@ -159,4 +159,72 @@
                 while (filledCells.size < 40) { // Fill 40 cells instead of 20
                     const index = Math.floor(Math.random() * 81);
                     if (!filledCells.has(index)) {
-                        inputs
+                        inputs[index].value = board[index];
+                        inputs[index].readOnly = true;
+                        filledCells.add(index);
+                    }
+                }
+            }
+
+            function validateInput(event) {
+                const input = event.target;
+                const value = input.value ? parseInt(input.value) : 0;
+                const index = inputs.indexOf(input);
+                if (value && !isSafe(toArray(inputs), value, index)) {
+                    input.classList.add('invalid');
+                    if (navigator.vibrate) {
+                        navigator.vibrate(250); // Vibrate for 250 milliseconds only if the input is invalid
+                    }
+                    input.value = ''; // Clear the input value
+                } else {
+                    input.classList.remove('invalid');
+                }
+            }
+
+            function toArray(inputs) {
+                return inputs.map(input => input.value ? parseInt(input.value) : 0);
+            }
+
+            function isSafe(board, num, pos) {
+                const row = Math.floor(pos / 9);
+                const col = pos % 9;
+                for (let i = 0; i < 9; i++) {
+                    if (board[row * 9 + i] === num || board[i * 9 + col] === num) return false;
+                }
+                const startRow = Math.floor(row / 3) * 3;
+                const startCol = Math.floor(col / 3) * 3;
+                for (let i = startRow; i < startRow + 3; i++) {
+                    for (let j = startCol; j < startCol + 3; j++) {
+                        if (board[i * 9 + j] === num) return false;
+                    }
+                }
+                return true;
+            }
+
+            function solveSudoku(board) {
+                const findEmpty = (board) => {
+                    for (let i = 0; i < 81; i++) {
+                        if (board[i] === 0) return i;
+                    }
+                    return null;
+                };
+
+                const solve = (board) => {
+                    const empty = findEmpty(board);
+                    if (empty === null) return true;
+                    for (let num = 1; num <= 9; num++) {
+                        if (isSafe(board, num, empty)) {
+                            board[empty] = num;
+                            if (solve(board)) return true;
+                            board[empty] = 0;
+                        }
+                    }
+                    return false;
+                };
+
+                return solve(board);
+            }
+        });
+    </script>
+</body>
+</html>
