@@ -13,15 +13,15 @@
         }
         #sudoku-board {
             display: grid;
-            grid-template-columns: repeat(9, 40px);
-            grid-template-rows: repeat(9, 40px);
-            gap: 1px;
+            grid-template-columns: repeat(9, 38px);
+            grid-template-rows: repeat(9, 38px);
+            gap: 2px;
             justify-content: center;
             margin: 20px auto;
         }
         input[type="text"] {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             text-align: center;
             font-size: 18px;
             border: 1px solid #000;
@@ -130,8 +130,8 @@
                     input.addEventListener('click', () => showNumberButtons(input, i));
 
                     // Add double border classes to the first, fourth, seventh, and last rows and columns
-                    if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6 || i % 9 === 8) input.classList.add('double-left-border');
-                    if (Math.floor(i / 9) === 0 || Math.floor(i / 9) === 3 || Math.floor(i / 9) === 6 || Math.floor(i / 9) === 8) input.classList.add('double-top-border');
+                    if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6) input.classList.add('double-left-border');
+                    if (Math.floor(i / 9) === 0 || Math.floor(i / 9) === 3 || Math.floor(i / 9) === 6) input.classList.add('double-top-border');
 
                     // Add alternating background colors for 3x3 grids
                     const row = Math.floor(i / 9);
