@@ -76,7 +76,7 @@
     </style>
 </head>
 <body>
-    <h1>e Tris par la fèsta dla dòna</h1>
+    <h1>e Zùg de Tris</h1>
     <div class="board">
         <div class="cell" data-index="0"></div>
         <div class="cell" data-index="1"></div>
@@ -119,7 +119,9 @@
             if (gameOver) return;
             const index = event.target.dataset.index;
             if (!board[index]) {
-                event.target.textContent = humanPlayer;
+                const img = document.createElement('img');
+                img.src = 'images/MiaFaccia001.jpg';
+                event.target.appendChild(img);
                 board[index] = humanPlayer;
                 if (checkWin(board, humanPlayer)) {
                     gameOver = true;
