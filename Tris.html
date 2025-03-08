@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gioco del Tris</title>
+    <title>e Zug de Tris</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -121,8 +121,8 @@
 
         function makeComputerMove() {
             const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(val => val !== null);
+            // First move is random
             if (emptyCells.length === 9) {
-                // First move is random
                 const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
                 board[randomIndex] = aiPlayer;
                 const img = document.createElement('img');
