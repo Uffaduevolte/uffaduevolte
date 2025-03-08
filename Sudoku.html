@@ -77,8 +77,12 @@
                 board.appendChild(input);
             }
 
-            // Randomly fill some cells with valid numbers
-            randomlyFillBoard(inputs);
+            // Generate a complete, valid Sudoku board
+            const sudokuBoard = Array(81).fill(0);
+            generateSudoku(sudokuBoard);
+
+            // Randomly hide some cells to create the puzzle
+            hideCells(sudokuBoard, inputs);
 
             solveButton.addEventListener('click', () => {
                 const board = Array.from(inputs).map(input => input.value ? parseInt(input.value) : 0);
@@ -91,20 +95,69 @@
                 }
             });
 
-            function randomlyFillBoard(inputs) {
-                const filledCells = new Set();
-                while (filledCells.size < 20) {
-                    const index = Math.floor(Math.random() * 81);
-                    const num = Math.floor(Math.random() * 9) + 1;
-                    if (isSafe(toArray(inputs), num, index)) {
-                        inputs[index].value = num;
-                        filledCells.add(index);
+            function generateSudoku(board) {
+                solveSudoku(board);
+
+                function shuffle(array) {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
                     }
+                }
+
+                function solveSudoku(board) {
+                    const findEmpty = (board) => {
+                        for (let i = 0; i < 81; i++) {
+                            if (board[i] === 0) return i;
+                        }
+                        return null;
+                    };
+
+                    const isSafe = (board, num, pos) => {
+                        const row = Math.floor(pos / 9);
+                        const col = pos % 9;
+                        for (let i = 0; i < 9; i++) {
+                            if (board[row * 9 + i] === num || board[i * 9 + col] === num) return false;
+                        }
+                        const startRow = Math.floor(row / 3) * 3;
+                        const startCol = Math.floor(col / 3) * 3;
+                        for (let i = startRow; i < startRow + 3; i++) {
+                            for (let j = startCol; j < startCol + 3; j++) {
+                                if (board[i * 9 + j] === num) return false;
+                            }
+                        }
+                        return true;
+                    };
+
+                    const solve = (board) => {
+                        const empty = findEmpty(board);
+                        if (empty === null) return true;
+                        const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                        shuffle(nums);
+                        for (let num of nums) {
+                            if (isSafe(board, num, empty)) {
+                                board[empty] = num;
+                                if (solve(board)) return true;
+                                board[empty] = 0;
+                            }
+                        }
+                        return false;
+                    };
+
+                    return solve(board);
                 }
             }
 
-            function toArray(inputs) {
-                return inputs.map(input => input.value ? parseInt(input.value) : 0);
+            function hideCells(board, inputs) {
+                const filledCells = new Set();
+                while (filledCells.size < 20) {
+                    const index = Math.floor(Math.random() * 81);
+                    if (!filledCells.has(index)) {
+                        inputs[index].value = board[index];
+                        inputs[index].readOnly = true;
+                        filledCells.add(index);
+                    }
+                }
             }
 
             function validateInput(event) {
@@ -118,28 +171,32 @@
                 }
             }
 
+            function toArray(inputs) {
+                return inputs.map(input => input.value ? parseInt(input.value) : 0);
+            }
+
+            function isSafe(board, num, pos) {
+                const row = Math.floor(pos / 9);
+                const col = pos % 9;
+                for (let i = 0; i < 9; i++) {
+                    if (board[row * 9 + i] === num || board[i * 9 + col] === num) return false;
+                }
+                const startRow = Math.floor(row / 3) * 3;
+                const startCol = Math.floor(col / 3) * 3;
+                for (let i = startRow; i < startRow + 3; i++) {
+                    for (let j = startCol; j < startCol + 3; j++) {
+                        if (board[i * 9 + j] === num) return false;
+                    }
+                }
+                return true;
+            }
+
             function solveSudoku(board) {
                 const findEmpty = (board) => {
                     for (let i = 0; i < 81; i++) {
                         if (board[i] === 0) return i;
                     }
                     return null;
-                };
-
-                const isSafe = (board, num, pos) => {
-                    const row = Math.floor(pos / 9);
-                    const col = pos % 9;
-                    for (let i = 0; i < 9; i++) {
-                        if (board[row * 9 + i] === num || board[i * 9 + col] === num) return false;
-                    }
-                    const startRow = Math.floor(row / 3) * 3;
-                    const startCol = Math.floor(col / 3) * 3;
-                    for (let i = startRow; i < startRow + 3; i++) {
-                        for (let j = startCol; j < startCol + 3; j++) {
-                            if (board[i * 9 + j] === num) return false;
-                        }
-                    }
-                    return true;
                 };
 
                 const solve = (board) => {
