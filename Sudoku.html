@@ -13,25 +13,24 @@
         }
         #sudoku-board {
             display: grid;
-            grid-template-columns: repeat(9, 38px);
-            grid-template-rows: repeat(9, 38px);
-            gap: 2px;
+            grid-template-columns: repeat(9, 40px);
+            grid-template-rows: repeat(9, 40px);
+            gap: 1px; /* Gap between cells */
             justify-content: center;
             margin: 20px auto;
         }
-        input[type="text"] {
-            width: 36px;
-            height: 36px;
+        .sudoku-cell {
+            width: 38px;
+            height: 38px;
             text-align: center;
             font-size: 18px;
             border: 1px solid #000;
         }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 10px;
-            box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+        .subgrid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 1px; /* Gap between cells within subgrid */
         }
         .number-buttons {
             margin-top: 20px;
@@ -48,15 +47,6 @@
             font-size: 18px;
             border-radius: 10px;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .double-border {
-            border-width: 4px;
-        }
-        .double-top-border {
-            border-top-width: 4px;
-        }
-        .double-left-border {
-            border-left-width: 4px;
         }
         .eraser-button {
             display: none;
@@ -121,28 +111,23 @@
 
             function startGame(visibleNumbers) {
                 difficultyButtons.style.display = 'none'; // Hide difficulty buttons
-                const inputs = [];
                 board.innerHTML = ''; // Clear the board
-                for (let i = 0; i < 81; i++) {
-                    const input = document.createElement('input');
-                    input.type = 'text'; // Change type to text to prevent keyboard from appearing
-                    input.readOnly = true; // Make input read-only to prevent manual input
-                    input.addEventListener('click', () => showNumberButtons(input, i));
-
-                    // Add double border classes to the first, fourth, seventh, and last rows and columns
-                    if (i % 9 === 0 || i % 9 === 3 || i % 9 === 6) input.classList.add('double-left-border');
-                    if (Math.floor(i / 9) === 0 || Math.floor(i / 9) === 3 || Math.floor(i / 9) === 6) input.classList.add('double-top-border');
-
-                    // Add alternating background colors for 3x3 grids
-                    const row = Math.floor(i / 9);
-                    const col = i % 9;
-                    const subGridRow = Math.floor(row / 3);
-                    const subGridCol = Math.floor(col / 3);
-                    const isDarkGrid = (subGridRow + subGridCol) % 2 === 0;
-                    input.classList.add(isDarkGrid ? 'dark-grid' : 'light-grid');
-
-                    inputs.push(input);
-                    board.appendChild(input);
+                const inputs = [];
+                for (let subgridRow = 0; subgridRow < 3; subgridRow++) {
+                    for (let subgridCol = 0; subgridCol < 3; subgridCol++) {
+                        const subgrid = document.createElement('div');
+                        subgrid.classList.add('subgrid');
+                        for (let i = 0; i < 9; i++) {
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.readOnly = true;
+                            input.classList.add('sudoku-cell');
+                            input.addEventListener('click', () => showNumberButtons(input, subgridRow * 27 + subgridCol * 3 + i));
+                            subgrid.appendChild(input);
+                            inputs.push(input);
+                        }
+                        board.appendChild(subgrid);
+                    }
                 }
 
                 // Generate a complete, valid Sudoku board
