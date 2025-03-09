@@ -18,7 +18,6 @@
             gap: 2px;
             justify-content: center;
             margin: 20px auto;
-            background-color: #000; /* Background color to emphasize gaps */
         }
         .sudoku-cell {
             width: 38px;
@@ -28,18 +27,14 @@
             border: 1px solid #000;
         }
         .subgrid {
-            display: grid;
-            grid-template-columns: repeat(3, 40px);
-            grid-template-rows: repeat(3, 40px);
-            gap: 2px;
-            background-color: #000; /* Background color to emphasize gaps */
+            display: contents;
         }
         .number-buttons {
             margin-top: 20px;
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            width: 360px; /* Same width as the 9x40px grid */
+            width: 360px;
             margin: 20px auto;
         }
         .number-buttons button {
@@ -95,6 +90,7 @@
         <!-- Buttons will be added dynamically here -->
     </div>
     <button class="eraser-button" id="eraser-button">🩸</button>
+    <button id="screenshot-button">Take Screenshot</button>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const board = document.getElementById('sudoku-board');
@@ -103,6 +99,7 @@
             const easyButton = document.getElementById('easy-button');
             const mediumButton = document.getElementById('medium-button');
             const hardButton = document.getElementById('hard-button');
+            const screenshotButton = document.getElementById('screenshot-button');
             const difficultyButtons = document.getElementById('difficulty-buttons');
             let selectedInput = null;
             let solution = [];
@@ -111,30 +108,20 @@
             mediumButton.addEventListener('click', () => startGame(33));
             hardButton.addEventListener('click', () => startGame(20));
 
+            screenshotButton.addEventListener('click', takeScreenshot);
+
             function startGame(visibleNumbers) {
                 difficultyButtons.style.display = 'none'; // Hide difficulty buttons
                 board.innerHTML = ''; // Clear the board
                 const inputs = [];
                 for (let row = 0; row < 9; row++) {
                     for (let col = 0; col < 9; col++) {
-                        const subgridRow = Math.floor(row / 3);
-                        const subgridCol = Math.floor(col / 3);
-                        const subgridIndex = subgridRow * 3 + subgridCol;
-
-                        let subgrid = board.querySelector(`.subgrid[data-index='${subgridIndex}']`);
-                        if (!subgrid) {
-                            subgrid = document.createElement('div');
-                            subgrid.classList.add('subgrid');
-                            subgrid.dataset.index = subgridIndex;
-                            board.appendChild(subgrid);
-                        }
-
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.readOnly = true;
                         input.classList.add('sudoku-cell');
                         input.addEventListener('click', () => showNumberButtons(input, row * 9 + col));
-                        subgrid.appendChild(input);
+                        board.appendChild(input);
                         inputs.push(input);
                     }
                 }
@@ -259,7 +246,7 @@
 
                 const solve = (board) => {
                     const empty = findEmpty(board);
-                    if (empty === null) return true;
+                    if (empty is null) return true;
                     for (let num = 1; num <= 9; num++) {
                         if (isSafe(board, num, empty)) {
                             board[empty] = num;
@@ -272,7 +259,17 @@
 
                 return solve(board);
             }
+
+            function takeScreenshot() {
+                html2canvas(document.querySelector("#sudoku-board")).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'sudoku.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            }
         });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 </body>
 </html>
