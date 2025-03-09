@@ -15,9 +15,10 @@
             display: grid;
             grid-template-columns: repeat(9, 40px);
             grid-template-rows: repeat(9, 40px);
-            gap: 1px; /* Gap between cells */
+            gap: 2px;
             justify-content: center;
             margin: 20px auto;
+            background-color: #000; /* Background color to emphasize gaps */
         }
         .sudoku-cell {
             width: 38px;
@@ -28,9 +29,10 @@
         }
         .subgrid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 1px; /* Gap between cells within subgrid */
+            grid-template-columns: repeat(3, 40px);
+            grid-template-rows: repeat(3, 40px);
+            gap: 2px;
+            background-color: #000; /* Background color to emphasize gaps */
         }
         .number-buttons {
             margin-top: 20px;
@@ -113,20 +115,27 @@
                 difficultyButtons.style.display = 'none'; // Hide difficulty buttons
                 board.innerHTML = ''; // Clear the board
                 const inputs = [];
-                for (let subgridRow = 0; subgridRow < 3; subgridRow++) {
-                    for (let subgridCol = 0; subgridCol < 3; subgridCol++) {
-                        const subgrid = document.createElement('div');
-                        subgrid.classList.add('subgrid');
-                        for (let i = 0; i < 9; i++) {
-                            const input = document.createElement('input');
-                            input.type = 'text';
-                            input.readOnly = true;
-                            input.classList.add('sudoku-cell');
-                            input.addEventListener('click', () => showNumberButtons(input, subgridRow * 27 + subgridCol * 3 + i));
-                            subgrid.appendChild(input);
-                            inputs.push(input);
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        const subgridRow = Math.floor(row / 3);
+                        const subgridCol = Math.floor(col / 3);
+                        const subgridIndex = subgridRow * 3 + subgridCol;
+
+                        let subgrid = board.querySelector(`.subgrid[data-index='${subgridIndex}']`);
+                        if (!subgrid) {
+                            subgrid = document.createElement('div');
+                            subgrid.classList.add('subgrid');
+                            subgrid.dataset.index = subgridIndex;
+                            board.appendChild(subgrid);
                         }
-                        board.appendChild(subgrid);
+
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.readOnly = true;
+                        input.classList.add('sudoku-cell');
+                        input.addEventListener('click', () => showNumberButtons(input, row * 9 + col));
+                        subgrid.appendChild(input);
+                        inputs.push(input);
                     }
                 }
 
