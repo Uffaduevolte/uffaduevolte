@@ -1,1 +1,28 @@
-1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youtube MP3 Downloader</title>
+</head>
+<body>
+    <h1>YouTube to MP3 Downloader</h1>
+    <form id="download-form">
+        <label for="video-url">YouTube Video URL:</label>
+        <input type="text" id="video-url" name="video-url" required>
+        <button type="submit">Download MP3</button>
+    </form>
+
+    <script>
+        document.getElementById('download-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const videoUrl = document.getElementById('video-url').value;
+            if (videoUrl) {
+                window.location.href = `https://api.example.com/download?url=${encodeURIComponent(videoUrl)}`;
+            } else {
+                alert('Please enter a valid YouTube URL.');
+            }
+        });
+    </script>
+</body>
+</html>
