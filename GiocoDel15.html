@@ -25,14 +25,17 @@
             margin-top: 20px; /* Aggiungi margine per separare la matrice dalla data */
             border: 2px solid #fff;
         }
-        .puzzle-piece {
+        .puzzle-piece, .empty-cell {
             width: 90px; /* Dimensione delle tessere */
             height: 90px; /* Dimensione delle tessere */
-            background-size: 270px 270px; /* Aggiorna la dimensione dell'immagine */
             cursor: pointer;
             border: 1px solid #333;
             user-select: none; /* Disabilita la selezione del testo durante il trascinamento */
             margin: 2px; /* Aggiungi un piccolo margine per separare le tessere */
+            background-color: #000; /* Assicura che tutte le tessere abbiano uno sfondo nero */
+        }
+        .puzzle-piece {
+            background-size: 270px 270px; /* Aggiorna la dimensione dell'immagine */
         }
         .empty-cell {
             background-color: yellow; /* Imposta il colore giallo per la cella vuota */
@@ -52,7 +55,7 @@
     </style>
 </head>
 <body>
-    <div class="last-saved">Ultimo salvataggio: 2025-03-29 17:31:03</div>
+    <div class="last-saved">Ultimo salvataggio: 2025-03-29 17:34:32</div>
     <div class="puzzle-container" id="puzzle-container">
         <!-- Celle vuote della matrice -->
         <div class="empty-cell" data-index="0"></div>
@@ -115,6 +118,17 @@
 
         piecesContainer.addEventListener('dragend', (event) => {
             event.target.classList.remove('dragging');
+        });
+
+        pieces.forEach(piece => {
+            piece.addEventListener('dragstart', (event) => {
+                event.dataTransfer.setData('text/plain', null); // Per Safari
+                event.target.classList.add('dragging');
+            });
+
+            piece.addEventListener('dragend', (event) => {
+                event.target.classList.remove('dragging');
+            });
         });
     </script>
 </body>
