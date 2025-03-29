@@ -14,6 +14,7 @@
             height: 100vh;
             margin: 0;
             padding: 20px; /* Aggiungi padding per lo spazio tra la matrice e il bordo dello schermo */
+            overflow: hidden; /* Impedisce lo scorrimento verticale della pagina */
         }
         .puzzle-container {
             width: 360px; /* Riduci la dimensione della matrice */
@@ -30,7 +31,7 @@
             border: 1px solid #333;
         }
         .puzzle-empty {
-            background-color: #030; /* Aggiungi uno sfondo nero per la tessera vuota */
+            background-color: #444; /* Imposta il colore grigio per la tessera vuota */
         }
     </style>
 </head>
@@ -39,7 +40,7 @@
     
     <script>
         const puzzleContainer = document.getElementById('puzzle-container');
-        const imagePath = 'images/MiaFaccia001.jpg'; // Assicurati che il percorso dell'immagine sia corretto
+        const imagePath = 'images/MiaFaccia001.jpg'; // Percorso corretto dell'immagine
         const pieces = [];
 
         for (let i = 0; i < 15; i++) {
