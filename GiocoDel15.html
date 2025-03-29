@@ -29,6 +29,9 @@
             cursor: pointer;
             border: 1px solid #333;
         }
+        .puzzle-empty {
+            background-color: #000; /* Aggiungi uno sfondo nero per la tessera vuota */
+        }
     </style>
 </head>
 <body>
@@ -53,7 +56,7 @@
         pieces.forEach(piece => puzzleContainer.appendChild(piece));
         
         const emptyPiece = document.createElement('div');
-        emptyPiece.classList.add('puzzle-piece');
+        emptyPiece.classList.add('puzzle-piece', 'puzzle-empty');
         puzzleContainer.appendChild(emptyPiece);
 
         puzzleContainer.addEventListener('click', (event) => {
