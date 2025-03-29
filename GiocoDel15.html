@@ -52,7 +52,7 @@
     </style>
 </head>
 <body>
-    <div class="last-saved">Ultimo salvataggio: 2025-03-29 12:57:56</div>
+    <div class="last-saved">Ultimo salvataggio: 2025-03-29 17:31:03</div>
     <div class="puzzle-container" id="puzzle-container">
         <!-- Celle vuote della matrice -->
         <div class="empty-cell" data-index="0"></div>
@@ -94,6 +94,7 @@
         });
 
         puzzleContainer.addEventListener('drop', (event) => {
+            event.preventDefault();
             const target = event.target;
             if (target.classList.contains('empty-cell')) {
                 const draggedPiece = document.querySelector('.dragging');
