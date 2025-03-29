@@ -17,8 +17,8 @@
             overflow: hidden; /* Impedisce lo scorrimento verticale della pagina */
         }
         .puzzle-container {
-            width: 270px; /* Riduci la dimensione della matrice */
-            height: 270px; /* Riduci la dimensione della matrice */
+            width: 270px; /* Dimensione della matrice */
+            height: 270px; /* Dimensione della matrice */
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 2px;
@@ -53,10 +53,28 @@
             justify-content: center;
             margin-top: 10px;
         }
+        .piece {
+            width: 90px;
+            height: 90px;
+            margin: 5px;
+            cursor: move;
+            border: 1px solid #333;
+            background-size: cover;
+            background-position: center;
+        }
+        .piece1 { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
+        .piece2 { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 100%); }
+        .piece3 { clip-path: polygon(0% 0%, 100% 0%, 50% 100%, 0% 100%); }
+        .piece4 { clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%); }
+        .piece5 { clip-path: polygon(0% 0%, 100% 0%, 100% 50%, 0% 100%); }
+        .piece6 { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 50%); }
+        .piece7 { clip-path: polygon(0% 50%, 100% 0%, 100% 100%, 0% 100%); }
+        .piece8 { clip-path: polygon(0% 0%, 100% 50%, 100% 100%, 0% 100%); }
+        .piece9 { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 50%); }
     </style>
 </head>
 <body>
-    <div class="last-saved">Ultimo salvataggio: 2025-03-29 17:37:30</div>
+    <div class="last-saved">Ultimo salvataggio: 2025-03-29 17:41:46</div>
     <div class="puzzle-container" id="puzzle-container">
         <!-- Celle vuote della matrice -->
         <div class="empty-cell" data-index="0"></div>
@@ -71,27 +89,26 @@
     </div>
     <div class="pieces-container" id="pieces-container">
         <!-- Le tessere del puzzle posizionate al di sotto della matrice -->
+        <div class="piece piece1" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece2" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece3" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece4" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece5" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece6" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece7" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece8" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
+        <div class="piece piece9" style="background-image: url('images/MiaFaccia001.jpg');" draggable="true"></div>
     </div>
     
     <script>
         const puzzleContainer = document.getElementById('puzzle-container');
         const piecesContainer = document.getElementById('pieces-container');
-        const imagePath = 'images/MiaFaccia001.jpg'; // Percorso corretto dell'immagine
-        const pieces = [];
 
-        for (let i = 0; i < 9; i++) {
-            const piece = document.createElement('div');
-            piece.classList.add('puzzle-piece');
-            piece.style.backgroundImage = `url(${imagePath})`;
-            piece.style.backgroundPosition = `${(i % 3) * -90}px ${Math.floor(i / 3) * -90}px`; /* Aggiorna la posizione dell'immagine */
-            piece.draggable = true;
-            piece.dataset.index = i;
-            pieces.push(piece);
-        }
-
-        pieces.sort(() => Math.random() - 0.5); // Mescola i pezzi
-        
-        pieces.forEach(piece => piecesContainer.appendChild(piece));
+        piecesContainer.addEventListener('dragstart', (event) => {
+            if (event.target.classList.contains('piece')) {
+                event.dataTransfer.setData('text', event.target.className);
+            }
+        });
 
         puzzleContainer.addEventListener('dragover', (event) => {
             event.preventDefault();
@@ -99,38 +116,16 @@
 
         puzzleContainer.addEventListener('drop', (event) => {
             event.preventDefault();
-            const target = event.target;
-            if (target.classList.contains('empty-cell')) {
-                const draggedPiece = document.querySelector('.dragging');
-                if (draggedPiece) {
-                    target.classList.remove('empty-cell');
-                    target.classList.add('puzzle-piece');
-                    target.style.backgroundImage = draggedPiece.style.backgroundImage;
-                    target.style.backgroundPosition = draggedPiece.style.backgroundPosition;
-                    target.dataset.index = draggedPiece.dataset.index;
-                    draggedPiece.remove();
-                }
+            const className = event.dataTransfer.getData('text');
+            const draggedPiece = document.querySelector(`.${className}`);
+            if (draggedPiece && event.target.classList.contains('empty-cell')) {
+                event.target.classList.remove('empty-cell');
+                event.target.classList.add('piece');
+                event.target.style.backgroundImage = draggedPiece.style.backgroundImage;
+                event.target.style.backgroundPosition = draggedPiece.style.backgroundPosition;
+                event.target.style.clipPath = draggedPiece.style.clipPath;
+                draggedPiece.remove();
             }
-        });
-
-        piecesContainer.addEventListener('dragstart', (event) => {
-            event.dataTransfer.setData('text/plain', null); // Per Safari
-            event.target.classList.add('dragging');
-        });
-
-        piecesContainer.addEventListener('dragend', (event) => {
-            event.target.classList.remove('dragging');
-        });
-
-        document.querySelectorAll('.puzzle-piece').forEach(piece => {
-            piece.addEventListener('dragstart', (event) => {
-                event.dataTransfer.setData('text/plain', null); // Per Safari
-                event.target.classList.add('dragging');
-            });
-
-            piece.addEventListener('dragend', (event) => {
-                event.target.classList.remove('dragging');
-            });
         });
     </script>
 </body>
