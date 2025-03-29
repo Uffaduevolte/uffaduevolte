@@ -23,70 +23,97 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 2px;
             margin-top: 20px; /* Aggiungi margine per separare la matrice dalla data */
+            border: 2px solid #fff;
         }
         .puzzle-piece {
-            width: 100%;
-            height: 100%;
+            width: 90px; /* Dimensione delle tessere */
+            height: 90px; /* Dimensione delle tessere */
             background-size: 270px 270px; /* Aggiorna la dimensione dell'immagine */
             cursor: pointer;
             border: 1px solid #333;
             user-select: none; /* Disabilita la selezione del testo durante il trascinamento */
+            margin: 2px; /* Aggiungi un piccolo margine per separare le tessere */
         }
-        .puzzle-empty {
-            background-color: yellow; /* Imposta il colore giallo per la tessera vuota */
+        .empty-cell {
+            background-color: yellow; /* Imposta il colore giallo per la cella vuota */
             opacity: 1; /* Assicurati che la cella vuota non sia trasparente */
         }
         .last-saved {
             font-size: 16px;
             margin-bottom: 10px;
         }
+        .pieces-container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 300px;
+            justify-content: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="last-saved">Ultimo salvataggio: 2025-03-29 12:47:00</div>
-    <div class="puzzle-container" id="puzzle-container"></div>
+    <div class="last-saved">Ultimo salvataggio: 2025-03-29 12:57:56</div>
+    <div class="puzzle-container" id="puzzle-container">
+        <!-- Celle vuote della matrice -->
+        <div class="empty-cell" data-index="0"></div>
+        <div class="empty-cell" data-index="1"></div>
+        <div class="empty-cell" data-index="2"></div>
+        <div class="empty-cell" data-index="3"></div>
+        <div class="empty-cell" data-index="4"></div>
+        <div class="empty-cell" data-index="5"></div>
+        <div class="empty-cell" data-index="6"></div>
+        <div class="empty-cell" data-index="7"></div>
+        <div class="empty-cell" data-index="8"></div>
+    </div>
+    <div class="pieces-container" id="pieces-container">
+        <!-- Le tessere del puzzle posizionate al di sotto della matrice -->
+    </div>
     
     <script>
         const puzzleContainer = document.getElementById('puzzle-container');
+        const piecesContainer = document.getElementById('pieces-container');
         const imagePath = 'images/MiaFaccia001.jpg'; // Percorso corretto dell'immagine
         const pieces = [];
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 9; i++) {
             const piece = document.createElement('div');
             piece.classList.add('puzzle-piece');
             piece.style.backgroundImage = `url(${imagePath})`;
             piece.style.backgroundPosition = `${(i % 3) * -90}px ${Math.floor(i / 3) * -90}px`; /* Aggiorna la posizione dell'immagine */
+            piece.draggable = true;
             piece.dataset.index = i;
             pieces.push(piece);
         }
 
         pieces.sort(() => Math.random() - 0.5); // Mescola i pezzi
         
-        pieces.forEach(piece => puzzleContainer.appendChild(piece));
-        
-        const emptyPiece = document.createElement('div');
-        emptyPiece.classList.add('puzzle-piece', 'puzzle-empty');
-        emptyPiece.dataset.index = 8;
-        puzzleContainer.appendChild(emptyPiece);
+        pieces.forEach(piece => piecesContainer.appendChild(piece));
 
-        // Abilita il trascinamento delle tessere
-        puzzleContainer.addEventListener('mousedown', (event) => {
-            const piece = event.target;
-            if (!piece.classList.contains('puzzle-piece') || piece.classList.contains('puzzle-empty')) return;
+        puzzleContainer.addEventListener('dragover', (event) => {
+            event.preventDefault();
+        });
 
-            const emptyIndex = Array.from(puzzleContainer.children).indexOf(emptyPiece);
-            const pieceIndex = Array.from(puzzleContainer.children).indexOf(piece);
-
-            const emptyRow = Math.floor(emptyIndex / 3);
-            const emptyCol = emptyIndex % 3;
-            const pieceRow = Math.floor(pieceIndex / 3);
-            const pieceCol = pieceIndex % 3;
-
-            const isAdjacent = (Math.abs(emptyRow - pieceRow) + Math.abs(emptyCol - pieceCol)) === 1;
-            if (isAdjacent) {
-                puzzleContainer.insertBefore(emptyPiece, piece);
-                puzzleContainer.insertBefore(piece, puzzleContainer.children[emptyIndex]);
+        puzzleContainer.addEventListener('drop', (event) => {
+            const target = event.target;
+            if (target.classList.contains('empty-cell')) {
+                const draggedPiece = document.querySelector('.dragging');
+                if (draggedPiece) {
+                    target.classList.remove('empty-cell');
+                    target.classList.add('puzzle-piece');
+                    target.style.backgroundImage = draggedPiece.style.backgroundImage;
+                    target.style.backgroundPosition = draggedPiece.style.backgroundPosition;
+                    target.dataset.index = draggedPiece.dataset.index;
+                    draggedPiece.remove();
+                }
             }
+        });
+
+        piecesContainer.addEventListener('dragstart', (event) => {
+            event.target.classList.add('dragging');
+        });
+
+        piecesContainer.addEventListener('dragend', (event) => {
+            event.target.classList.remove('dragging');
         });
     </script>
 </body>
