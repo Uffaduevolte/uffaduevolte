@@ -30,7 +30,7 @@
             border: 1px solid #333;
         }
         .puzzle-empty {
-            background-color: #020; /* Aggiungi uno sfondo nero per la tessera vuota */
+            background-color: #030; /* Aggiungi uno sfondo nero per la tessera vuota */
         }
     </style>
 </head>
@@ -39,7 +39,7 @@
     
     <script>
         const puzzleContainer = document.getElementById('puzzle-container');
-        const imagePath = 'Images/MiaFaccia001.jpg';
+        const imagePath = 'images/MiaFaccia001.jpg'; // Assicurati che il percorso dell'immagine sia corretto
         const pieces = [];
 
         for (let i = 0; i < 15; i++) {
@@ -73,6 +73,7 @@
 
             const isAdjacent = (Math.abs(emptyRow - pieceRow) + Math.abs(emptyCol - pieceCol)) === 1;
             if (isAdjacent) {
+                // Scambia le tessere
                 puzzleContainer.insertBefore(emptyPiece, piece);
                 puzzleContainer.insertBefore(piece, puzzleContainer.children[emptyIndex]);
             }
