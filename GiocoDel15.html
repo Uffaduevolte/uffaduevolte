@@ -13,10 +13,11 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            padding: 20px; /* Aggiungi padding per lo spazio tra la matrice e il bordo dello schermo */
         }
         .puzzle-container {
-            width: 400px;
-            height: 400px;
+            width: 360px; /* Riduci la dimensione della matrice */
+            height: 360px; /* Riduci la dimensione della matrice */
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 2px;
@@ -24,7 +25,7 @@
         .puzzle-piece {
             width: 100%;
             height: 100%;
-            background-size: 400px 400px;
+            background-size: 360px 360px; /* Aggiorna la dimensione dell'immagine */
             cursor: pointer;
             border: 1px solid #333;
         }
@@ -35,14 +36,14 @@
     
     <script>
         const puzzleContainer = document.getElementById('puzzle-container');
-        const imagePath = 'images/MiaFaccia001.jpg';
+        const imagePath = 'Images/MiaFaccia001.jpg';
         const pieces = [];
 
         for (let i = 0; i < 15; i++) {
             const piece = document.createElement('div');
             piece.classList.add('puzzle-piece');
             piece.style.backgroundImage = `url(${imagePath})`;
-            piece.style.backgroundPosition = `${(i % 4) * -100}px ${Math.floor(i / 4) * -100}px`;
+            piece.style.backgroundPosition = `${(i % 4) * -90}px ${Math.floor(i / 4) * -90}px`; /* Aggiorna la posizione dell'immagine */
             piece.dataset.index = i;
             pieces.push(piece);
         }
