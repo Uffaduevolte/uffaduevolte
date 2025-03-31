@@ -38,10 +38,10 @@
     <div class="puzzle-container" id="puzzle-container"></div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Display the current date and time
+            // Display the last modified date and time
             const datetimeElement = document.getElementById('datetime');
-            const currentDate = new Date();
-            datetimeElement.textContent = currentDate.toLocaleString();
+            const lastModifiedDate = new Date(2025, 2, 31, 9, 39, 20); // Data e ora dell'ultimo salvataggio
+            datetimeElement.textContent = `Ultimo salvataggio: ${lastModifiedDate.toLocaleString()}`;
 
             const puzzleContainer = document.getElementById('puzzle-container');
             const imageSrc = 'images/MiaFaccia001.jpg';
@@ -87,14 +87,11 @@
                     const targetPiece = e.target;
                     const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
 
-                    // Swap the pieces in the DOM
-                    if (draggedPieceIndex < targetPieceIndex) {
-                        puzzleContainer.insertBefore(targetPiece, draggedPiece);
-                        puzzleContainer.insertBefore(draggedPiece, targetPiece.nextSibling);
-                    } else {
-                        puzzleContainer.insertBefore(draggedPiece, targetPiece);
-                        puzzleContainer.insertBefore(targetPiece, draggedPiece.nextSibling);
-                    }
+                    // Use a temporary placeholder element to swap the pieces correctly
+                    const placeholder = document.createElement('div');
+                    puzzleContainer.replaceChild(placeholder, draggedPiece);
+                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
+                    puzzleContainer.replaceChild(targetPiece, placeholder);
 
                     checkCompletion();
                 }
