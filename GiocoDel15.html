@@ -11,7 +11,11 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: #121212;
+            background-image: url('images/XmasTree.jpeg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: #ffffff;
         }
         .datetime {
             margin-top: 20px;
@@ -35,6 +39,21 @@
             display: none;
             margin-top: 20px;
         }
+        #video-button button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #1e90ff;
+            color: white;
+            box-shadow: 0 4px #999;
+        }
+        #video-button button:active {
+            background-color: #1e90ff;
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+        }
     </style>
 </head>
 <body>
@@ -53,7 +72,8 @@
             const puzzleContainer = document.getElementById('puzzle-container');
             const imageSrc = 'images/MiaFaccia001.jpg';
             const size = 300;
-            const pieceSize = size / 3;
+            const pieceWidth = size / 3;
+            const pieceHeight = size / 3 * (3 / 3); // Maintain aspect ratio
             const pieces = [];
 
             // Create puzzle pieces
@@ -62,9 +82,9 @@
                     const piece = document.createElement('div');
                     piece.classList.add('puzzle-piece');
                     piece.style.backgroundImage = `url(${imageSrc})`;
-                    piece.style.backgroundPosition = `-${col * pieceSize}px -${row * pieceSize}px`;
-                    piece.style.left = `${col * pieceSize}px`;
-                    piece.style.top = `${row * pieceSize}px`;
+                    piece.style.backgroundPosition = `-${col * pieceWidth}px -${row * pieceHeight}px`;
+                    piece.style.width = `${pieceWidth}px`;
+                    piece.style.height = `${pieceHeight}px`;
                     piece.dataset.correctPosition = `${col}-${row}`;
                     piece.draggable = true;
                     pieces.push(piece);
