@@ -124,6 +124,35 @@
                 }
             });
 
+            // Add touch event listeners for mobile support
+            puzzleContainer.addEventListener('touchstart', function(e) {
+                const touch = e.touches[0];
+                draggedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+            });
+
+            puzzleContainer.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const targetPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (targetPiece && targetPiece.classList.contains('puzzle-piece') && targetPiece !== draggedPiece) {
+                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
+
+                    // Use a temporary placeholder element to swap the pieces correctly
+                    const placeholder = document.createElement('div');
+                    puzzleContainer.replaceChild(placeholder, draggedPiece);
+                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
+                    puzzleContainer.replaceChild(targetPiece, placeholder);
+
+                    checkCompletion();
+                }
+            });
+
+            puzzleContainer.addEventListener('touchend', function(e) {
+                draggedPiece = null;
+                draggedPieceIndex = -1;
+            });
+
             function checkCompletion() {
                 let isComplete = true;
                 pieces.forEach(piece => {
