@@ -31,11 +31,18 @@
             border: 1px solid #ccc;
             cursor: pointer;
         }
+        #video-button {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="datetime" id="datetime"></div>
     <div class="puzzle-container" id="puzzle-container"></div>
+    <div id="video-button">
+        <button onclick="window.open('https://youtube.com/shorts/k7VZRKHPUUM?feature=share', '_blank')">Clicca qui per il video</button>
+    </div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Display the last modified date and time
@@ -110,7 +117,7 @@
                 });
 
                 if (isComplete) {
-                    alert('Puzzle completato!');
+                    document.getElementById('video-button').style.display = 'block';
                 }
             }
         });
