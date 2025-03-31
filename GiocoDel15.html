@@ -56,7 +56,9 @@
                     piece.classList.add('puzzle-piece');
                     piece.style.backgroundImage = `url(${imageSrc})`;
                     piece.style.backgroundPosition = `-${col * pieceSize}px -${row * pieceSize}px`;
-                    piece.dataset.position = `${col}-${row}`;
+                    piece.style.left = `${col * pieceSize}px`;
+                    piece.style.top = `${row * pieceSize}px`;
+                    piece.dataset.correctPosition = `${col}-${row}`;
                     piece.draggable = true;
                     pieces.push(piece);
                     puzzleContainer.appendChild(piece);
@@ -68,9 +70,11 @@
             pieces.forEach(piece => puzzleContainer.appendChild(piece));
 
             let draggedPiece = null;
+            let draggedPieceIndex = -1;
 
             puzzleContainer.addEventListener('dragstart', function(e) {
                 draggedPiece = e.target;
+                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
             });
 
             puzzleContainer.addEventListener('dragover', function(e) {
@@ -78,17 +82,19 @@
             });
 
             puzzleContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
                 if (e.target.classList.contains('puzzle-piece') && e.target !== draggedPiece) {
                     const targetPiece = e.target;
-                    const draggedPosition = draggedPiece.dataset.position;
-                    const targetPosition = targetPiece.dataset.position;
+                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
 
-                    // Swap positions
-                    draggedPiece.dataset.position = targetPosition;
-                    targetPiece.dataset.position = draggedPosition;
-
-                    puzzleContainer.insertBefore(draggedPiece, targetPiece);
-                    puzzleContainer.insertBefore(targetPiece, draggedPiece);
+                    // Swap the pieces in the DOM
+                    if (draggedPieceIndex < targetPieceIndex) {
+                        puzzleContainer.insertBefore(targetPiece, draggedPiece);
+                        puzzleContainer.insertBefore(draggedPiece, targetPiece.nextSibling);
+                    } else {
+                        puzzleContainer.insertBefore(draggedPiece, targetPiece);
+                        puzzleContainer.insertBefore(targetPiece, draggedPiece.nextSibling);
+                    }
 
                     checkCompletion();
                 }
@@ -97,9 +103,11 @@
             function checkCompletion() {
                 let isComplete = true;
                 pieces.forEach(piece => {
-                    const [col, row] = piece.dataset.position.split('-').map(Number);
-                    const correctPosition = `${col}-${row}`;
-                    if (piece.dataset.position !== correctPosition) {
+                    const [col, row] = piece.dataset.correctPosition.split('-').map(Number);
+                    const correctIndex = row * 3 + col;
+                    const currentIndex = Array.from(puzzleContainer.children).indexOf(piece);
+
+                    if (correctIndex !== currentIndex) {
                         isComplete = false;
                     }
                 });
