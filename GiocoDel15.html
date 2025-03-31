@@ -7,11 +7,16 @@
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
+        }
+        .datetime {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
         }
         .puzzle-container {
             display: grid;
@@ -29,9 +34,15 @@
     </style>
 </head>
 <body>
+    <div class="datetime" id="datetime"></div>
     <div class="puzzle-container" id="puzzle-container"></div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Display the current date and time
+            const datetimeElement = document.getElementById('datetime');
+            const currentDate = new Date();
+            datetimeElement.textContent = currentDate.toLocaleString();
+
             const puzzleContainer = document.getElementById('puzzle-container');
             const imageSrc = 'images/MiaFaccia001.jpg';
             const size = 300;
