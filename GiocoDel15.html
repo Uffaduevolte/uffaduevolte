@@ -24,14 +24,15 @@
         }
         .puzzle-container {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
             gap: 2px;
+            width: 300px;
+            height: 300px;
+            background-color: black;
         }
         .puzzle-piece {
-            width: 100px;
-            height: 100px;
-            background-size: 300px 300px;
+            background-size: cover;
             border: 1px solid #ccc;
             cursor: pointer;
         }
@@ -71,9 +72,10 @@
 
             const puzzleContainer = document.getElementById('puzzle-container');
             const imageSrc = 'images/MiaFaccia001.jpg';
-            const size = 300;
-            const pieceWidth = size / 3;
-            const pieceHeight = size / 3 * (3 / 3); // Maintain aspect ratio
+            const imageAspectRatio = 3 / 4; // Assuming the image has a 3:4 aspect ratio
+            const containerSize = 300;
+            const pieceWidth = containerSize / 3;
+            const pieceHeight = containerSize / 3 * imageAspectRatio;
             const pieces = [];
 
             // Create puzzle pieces
