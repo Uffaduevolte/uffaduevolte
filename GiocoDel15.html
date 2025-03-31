@@ -29,7 +29,7 @@
             height: 100px;
             background-size: 300px 300px;
             border: 1px solid #ccc;
-            cursor: move;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -56,9 +56,7 @@
                     piece.classList.add('puzzle-piece');
                     piece.style.backgroundImage = `url(${imageSrc})`;
                     piece.style.backgroundPosition = `-${col * pieceSize}px -${row * pieceSize}px`;
-                    piece.style.left = `${col * pieceSize}px`;
-                    piece.style.top = `${row * pieceSize}px`;
-                    piece.dataset.correctPosition = `${col}-${row}`;
+                    piece.dataset.position = `${col}-${row}`;
                     piece.draggable = true;
                     pieces.push(piece);
                     puzzleContainer.appendChild(piece);
@@ -82,20 +80,15 @@
             puzzleContainer.addEventListener('drop', function(e) {
                 if (e.target.classList.contains('puzzle-piece') && e.target !== draggedPiece) {
                     const targetPiece = e.target;
-                    const draggedPosition = draggedPiece.dataset.correctPosition;
-                    const targetPosition = targetPiece.dataset.correctPosition;
+                    const draggedPosition = draggedPiece.dataset.position;
+                    const targetPosition = targetPiece.dataset.position;
 
-                    const draggedLeft = draggedPiece.style.left;
-                    const draggedTop = draggedPiece.style.top;
+                    // Swap positions
+                    draggedPiece.dataset.position = targetPosition;
+                    targetPiece.dataset.position = draggedPosition;
 
-                    draggedPiece.style.left = targetPiece.style.left;
-                    draggedPiece.style.top = targetPiece.style.top;
-
-                    targetPiece.style.left = draggedLeft;
-                    targetPiece.style.top = draggedTop;
-
-                    draggedPiece.dataset.correctPosition = targetPosition;
-                    targetPiece.dataset.correctPosition = draggedPosition;
+                    puzzleContainer.insertBefore(draggedPiece, targetPiece);
+                    puzzleContainer.insertBefore(targetPiece, draggedPiece);
 
                     checkCompletion();
                 }
@@ -104,17 +97,9 @@
             function checkCompletion() {
                 let isComplete = true;
                 pieces.forEach(piece => {
-                    const [col, row] = piece.dataset.correctPosition.split('-').map(Number);
-                    const correctLeft = col * pieceSize;
-                    const correctTop = row * pieceSize;
-
-                    const currentLeft = parseInt(piece.style.left);
-                    const currentTop = parseInt(piece.style.top);
-
-                    if (Math.abs(currentLeft - correctLeft) <= 10 && Math.abs(currentTop - correctTop) <= 10) {
-                        piece.style.left = `${correctLeft}px`;
-                        piece.style.top = `${correctTop}px`;
-                    } else {
+                    const [col, row] = piece.dataset.position.split('-').map(Number);
+                    const correctPosition = `${col}-${row}`;
+                    if (piece.dataset.position !== correctPosition) {
                         isComplete = false;
                     }
                 });
