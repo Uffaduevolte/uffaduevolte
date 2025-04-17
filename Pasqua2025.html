@@ -16,6 +16,10 @@
         }
 
         #hammer {
+            position: absolute;
+            top: 10%; /* Sposta il martello più in alto */
+            left: 50%;
+            transform: translateX(-50%);
             width: 100px;
             cursor: pointer;
             animation: bounce 1s infinite;
@@ -31,8 +35,12 @@
         }
 
         #video-container {
-            display: none;
+            display: block; /* Rendi visibile il video */
             position: relative;
+        }
+
+        #egg-video {
+            width: 266px; /* Riduci la larghezza del video a 2/3 */
         }
 
         #surprise {
@@ -46,7 +54,7 @@
     <img id="hammer" src="images/hammer.png" alt="Martello" onclick="playVideo()">
     
     <div id="video-container">
-        <video id="egg-video" width="400" preload="metadata">
+        <video id="egg-video" width="266" preload="metadata">
             <source src="Video/EggExplosion.mp4" type="video/mp4">
             Il tuo browser non supporta il tag video.
         </video>
