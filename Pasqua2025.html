@@ -44,9 +44,10 @@
 
         .egg-piece {
             position: absolute;
-            width: 50px;
-            height: 50px;
-            background-color: brown;
+            width: 30px; /* Dimensioni più piccole */
+            height: 30px;
+            background-image: url('images/chocolate_texture.png'); /* Texture cioccolato */
+            background-size: cover;
             border-radius: 50%;
             animation: explode 1s forwards;
         }
@@ -75,7 +76,7 @@
             const surprise = document.getElementById('surprise');
             const body = document.body;
 
-            // Nascondi l'uovo
+            // Nascondi l'uovo con animazione
             egg.style.transform = 'scale(0.1)';
             egg.style.opacity = '0';
 
@@ -83,18 +84,24 @@
             setTimeout(() => {
                 egg.style.display = 'none';
 
-                for (let i = 0; i < 10; i++) {
+                for (let i = 0; i < 15; i++) { // Aumentato il numero di frammenti
                     const piece = document.createElement('div');
                     piece.className = 'egg-piece';
-                    piece.style.left = `${egg.offsetLeft + 100}px`;
-                    piece.style.top = `${egg.offsetTop + 100}px`;
+                    piece.style.left = `${egg.offsetLeft + egg.offsetWidth / 2}px`;
+                    piece.style.top = `${egg.offsetTop + egg.offsetHeight / 2}px`;
                     body.appendChild(piece);
 
                     const angle = Math.random() * 2 * Math.PI;
-                    const distance = Math.random() * 200;
-                    piece.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`;
+                    const distance = Math.random() * 150; // Distanza massima più limitata
+                    piece.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(1)`;
+
+                    // Rimuovi il frammento dopo l'animazione
+                    setTimeout(() => {
+                        piece.remove();
+                    }, 1000);
                 }
 
+                // Mostra la sorpresa
                 surprise.style.display = 'block';
             }, 500);
         }
