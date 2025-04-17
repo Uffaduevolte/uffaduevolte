@@ -52,6 +52,7 @@
         #surprise {
             display: none;
             width: 100px; /* Dimensione iniziale ridotta */
+            transform: scale(1); /* Assicurati che parta dalla dimensione originale */
             transition: transform 10s ease; /* Effetto di zoom lento in 10 secondi */
         }
     </style>
@@ -98,10 +99,8 @@
             // Mostra l'immagine sorpresa al termine del video con effetto di zoom
             eggVideo.addEventListener('ended', () => {
                 videoContainer.style.display = 'none';
-                surprise.style.display = 'block';
-                setTimeout(() => {
-                    surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni lentamente
-                }, 0); // Inizia subito l'ingrandimento
+                surprise.style.display = 'block'; // Rendi visibile l'immagine
+                surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni lentamente
             });
         }
 
