@@ -55,7 +55,7 @@
     <img id="hammer" src="images/hammer.png" alt="Martello" onclick="playVideo()">
     
     <div id="video-container">
-        <video id="egg-video" width="266" preload="metadata">
+        <video id="egg-video" preload="metadata">
             <source src="Video/EggExplosion.mp4" type="video/mp4">
             Il tuo browser non supporta il tag video.
         </video>
@@ -73,18 +73,18 @@
 
             // Sposta il martello in basso sovrapponendolo al video
             hammer.style.top = '0'; /* Sposta il martello sopra */
-            hammer.style.transform = 'translate(-50%, 0)'; /* Centra orizzontalmente */
+            hammer.style.transform = 'translate(-50%, 0)';
             hammer.style.height = '20%'; /* Occupa il primo quinto del video */
-
-            // Avvia il jingle di sottofondo
-            backgroundSound.play();
 
             // Nascondi il martello e mostra il video
             hammer.style.display = 'none';
             videoContainer.style.display = 'block';
 
+            // Avvia il suono di sottofondo
+            backgroundSound.play().catch((error) => {
+                console.warn('Impossibile avviare automaticamente il suono:', error);
+            });
 
-```html
             // Avvia il video
             eggVideo.play();
 
@@ -101,11 +101,11 @@
             eggVideo.currentTime = 0;
         });
 
-        // Assicurati che il suono di sottofondo sia avviato automaticamente
-        const backgroundSound = document.getElementById('background-sound');
+        // Avvia automaticamente il suono di sottofondo quando la pagina è caricata
         document.addEventListener('DOMContentLoaded', () => {
+            const backgroundSound = document.getElementById('background-sound');
             backgroundSound.play().catch((error) => {
-                console.warn('Impossibile avviare automaticamente il suono:', error);
+                console.log('Impossibile avviare automaticamente il suono', error);
             });
         });
     </script>
