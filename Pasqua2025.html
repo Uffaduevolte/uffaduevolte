@@ -20,10 +20,10 @@
             top: 10%; /* Posizione iniziale del martello */
             left: 50%;
             transform: translateX(-50%);
-            width: 100px;
+            width: 140px; /* Ingrandito del 40% */
             cursor: pointer;
-            animation: bounce 1s infinite;
             z-index: 2; /* Assicurarsi che il martello sia sopra il video */
+            transition: top 1s ease, opacity 1s ease; /* Animazioni per la discesa e dissolvenza */
         }
 
         @keyframes bounce {
@@ -47,6 +47,16 @@
         #surprise {
             display: none;
             width: 200px;
+            animation: zoomIn 5s forwards; /* Effetto di zoom */
+        }
+
+        @keyframes zoomIn {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(5); /* Zoom fino a occupare tutta la pagina */
+            }
         }
     </style>
 </head>
@@ -71,14 +81,12 @@
             const surprise = document.getElementById('surprise');
             const backgroundSound = document.getElementById('background-sound');
 
-            // Sposta il martello in basso sovrapponendolo al video
-            hammer.style.top = '0'; /* Sposta il martello sopra */
-            hammer.style.transform = 'translate(-50%, 0)';
-            hammer.style.height = '20%'; /* Occupa il primo quinto del video */
-
-            // Nascondi il martello e mostra il video
-            hammer.style.display = 'none';
-            videoContainer.style.display = 'block';
+            // Sposta il martello in basso sovrapponendolo al video e dissolvilo
+            hammer.style.top = '20%'; // Scende fino al primo quinto
+            hammer.style.opacity = '1'; // Inizia opaco al 100%
+            setTimeout(() => {
+                hammer.style.opacity = '0'; // Dissolve gradualmente
+            }, 500); // Dopo 0,5 secondi
 
             // Avvia il suono di sottofondo
             backgroundSound.play().catch((error) => {
