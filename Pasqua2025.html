@@ -23,16 +23,7 @@
             width: 140px; /* Ingrandito del 40% */
             cursor: pointer;
             z-index: 2; /* Assicurarsi che il martello sia sopra il video */
-            transition: top 1s ease, opacity 1s ease; /* Animazioni per la discesa e dissolvenza */
-        }
-
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
+            transition: top 2s ease, opacity 2s ease; /* Animazioni per la discesa e dissolvenza */
         }
 
         #video-container {
@@ -46,17 +37,8 @@
 
         #surprise {
             display: none;
-            width: 200px;
-            animation: zoomIn 5s forwards; /* Effetto di zoom */
-        }
-
-        @keyframes zoomIn {
-            0% {
-                transform: scale(1);
-            }
-            100% {
-                transform: scale(5); /* Zoom fino a occupare tutta la pagina */
-            }
+            width: 200px; /* Dimensione iniziale */
+            transition: transform 10s ease; /* Effetto di raddoppio dimensioni */
         }
     </style>
 </head>
@@ -74,24 +56,26 @@
     <img id="surprise" src="images/FacciaDaUovo.jpg" alt="Sorpresa!">
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const backgroundSound = document.getElementById('background-sound');
+            // Avvia automaticamente il suono di sottofondo
+            backgroundSound.play().catch((error) => {
+                console.log('Impossibile avviare automaticamente il suono', error);
+            });
+        });
+
         function playVideo() {
             const hammer = document.getElementById('hammer');
             const videoContainer = document.getElementById('video-container');
             const eggVideo = document.getElementById('egg-video');
             const surprise = document.getElementById('surprise');
-            const backgroundSound = document.getElementById('background-sound');
 
             // Sposta il martello in basso sovrapponendolo al video e dissolvilo
-            hammer.style.top = '20%'; // Scende fino al primo quinto
+            hammer.style.top = '33%'; // Scende fino al primo terzo
             hammer.style.opacity = '1'; // Inizia opaco al 100%
             setTimeout(() => {
-                hammer.style.opacity = '0'; // Dissolve gradualmente
-            }, 500); // Dopo 0,5 secondi
-
-            // Avvia il suono di sottofondo
-            backgroundSound.play().catch((error) => {
-                console.warn('Impossibile avviare automaticamente il suono:', error);
-            });
+                hammer.style.opacity = '0'; // Dissolve gradualmente in 2 secondi
+            }, 1000); // Dopo 1 secondo
 
             // Avvia il video
             eggVideo.play();
@@ -100,6 +84,7 @@
             eggVideo.addEventListener('ended', () => {
                 videoContainer.style.display = 'none';
                 surprise.style.display = 'block';
+                surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni
             });
         }
 
@@ -107,14 +92,6 @@
         const eggVideo = document.getElementById('egg-video');
         eggVideo.addEventListener('loadedmetadata', () => {
             eggVideo.currentTime = 0;
-        });
-
-        // Avvia automaticamente il suono di sottofondo quando la pagina è caricata
-        document.addEventListener('DOMContentLoaded', () => {
-            const backgroundSound = document.getElementById('background-sound');
-            backgroundSound.play().catch((error) => {
-                console.log('Impossibile avviare automaticamente il suono', error);
-            });
         });
     </script>
 </body>
