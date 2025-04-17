@@ -20,12 +20,12 @@
             position: absolute;
             top: 10%; /* Posizione iniziale del martello */
             left: 55%; /* Spostato leggermente a destra */
-            transform: translateX(-50%);
+            transform: translateX(-50%) rotate(0deg); /* Aggiunto rotate iniziale */
             width: 140px; /* Ingrandito del 40% */
             cursor: pointer;
             z-index: 2; /* Assicurarsi che il martello sia sopra il video */
             animation: bounce 1s infinite; /* Animazione del martello */
-            transition: top 2s ease, opacity 2s ease; /* Animazioni per la discesa e dissolvenza */
+            transition: top 2s ease, opacity 2s ease, transform 2s ease; /* Aggiunta transizione per la rotazione */
         }
 
         @keyframes bounce {
@@ -88,9 +88,10 @@
                 );
             });
 
-            // Sposta il martello in basso sovrapponendolo al video e dissolvilo
+            // Sposta il martello in basso sovrapponendolo al video, aggiunge rotazione e dissolvilo
             hammer.style.top = '33%'; // Scende fino al primo terzo
             hammer.style.opacity = '1'; // Inizia opaco al 100%
+            hammer.style.transform = 'translateX(-50%) rotate(-20deg)'; // Aggiunta rotazione di 20 gradi in senso antiorario
             setTimeout(() => {
                 hammer.style.opacity = '0'; // Dissolve gradualmente in 2 secondi
             }, 1000); // Dopo 1 secondo
