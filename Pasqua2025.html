@@ -47,6 +47,8 @@
             border: none; /* Rimuove eventuali bordi */
             margin: 0; /* Elimina margini */
             padding: 0; /* Elimina padding */
+            box-sizing: border-box; /* Assicura che non ci siano bordi non necessari */
+            outline: none; /* Rimuove eventuali bordi visivi */
         }
 
         #surprise {
@@ -100,7 +102,9 @@
             eggVideo.addEventListener('ended', () => {
                 videoContainer.style.display = 'none';
                 surprise.style.display = 'block'; // Rendi visibile l'immagine
-                surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni lentamente
+                setTimeout(() => {
+                    surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni lentamente
+                }, 50); // Inizia subito l'ingrandimento (leggero ritardo per sicurezza)
             });
         }
 
