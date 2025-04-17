@@ -13,12 +13,13 @@
             height: 100vh;
             margin: 0;
             background-color: #000; /* Sfondo nero */
+            overflow: hidden; /* Nasconde eventuali elementi in eccesso */
         }
 
         #hammer {
             position: absolute;
             top: 10%; /* Posizione iniziale del martello */
-            left: 50%;
+            left: 55%; /* Spostato leggermente a destra */
             transform: translateX(-50%);
             width: 140px; /* Ingrandito del 40% */
             cursor: pointer;
@@ -43,6 +44,9 @@
 
         #egg-video {
             width: 266px; /* Riduci la larghezza del video a 2/3 */
+            border: none; /* Rimuove eventuali bordi */
+            margin: 0; /* Elimina margini */
+            padding: 0; /* Elimina padding */
         }
 
         #surprise {
@@ -70,7 +74,10 @@
             const backgroundSound = document.getElementById('background-sound');
             // Avvia automaticamente il suono di sottofondo
             backgroundSound.play().catch((error) => {
-                console.log('Impossibile avviare automaticamente il suono:', error);
+                console.log(
+                    'Impossibile avviare automaticamente il suono (potrebbero esserci restrizioni del browser):',
+                    error
+                );
             });
         });
 
@@ -94,7 +101,9 @@
             eggVideo.addEventListener('ended', () => {
                 videoContainer.style.display = 'none';
                 surprise.style.display = 'block';
-                surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni lentamente
+                setTimeout(() => {
+                    surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni lentamente
+                }, 0); // Inizia subito l'ingrandimento
             });
         }
 
