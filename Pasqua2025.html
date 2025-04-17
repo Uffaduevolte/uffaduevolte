@@ -1,1 +1,64 @@
-x
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasqua 2025</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #fdf3e6;
+        }
+
+        #hammer {
+            width: 100px;
+            cursor: pointer;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        #egg {
+            width: 200px;
+            transition: transform 0.5s, opacity 0.5s;
+        }
+
+        #surprise {
+            display: none;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <img id="hammer" src="images/hammer.png" alt="Martello" onclick="breakEgg()">
+    <img id="egg" src="images/chocolate_egg.png" alt="Uovo di cioccolato">
+    <img id="surprise" src="images/FacciaDaUovo.jpg" alt="Sorpresa!">
+
+    <script>
+        function breakEgg() {
+            const egg = document.getElementById('egg');
+            const surprise = document.getElementById('surprise');
+
+            egg.style.transform = 'scale(0.1)';
+            egg.style.opacity = '0';
+
+            setTimeout(() => {
+                egg.style.display = 'none';
+                surprise.style.display = 'block';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
