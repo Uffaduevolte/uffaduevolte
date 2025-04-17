@@ -12,7 +12,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #fdf3e6;
+            background-color: #000; /* Sfondo nero */
         }
 
         #hammer {
@@ -33,17 +33,38 @@
         #egg {
             width: 200px;
             transition: transform 0.5s, opacity 0.5s;
-            border-radius: 50%; /* Arrotonda i bordi */
-            box-shadow: none; /* Rimuove eventuali ombre */
+            border-radius: 50%;
+            box-shadow: none;
         }
 
         #surprise {
             display: none;
-            width: 200px;
+            width: 133px; /* 2/3 di 200px */
+        }
+
+        .egg-piece {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: brown;
+            border-radius: 50%;
+            animation: explode 1s forwards;
+        }
+
+        @keyframes explode {
+            from {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: translate(calc(100px - 50%), calc(100px - 50%)) scale(0);
+                opacity: 0;
+            }
         }
     </style>
 </head>
 <body>
+    <audio id="background-sound" src="Sounds/jingle01.mp3" loop autoplay></audio>
     <img id="hammer" src="images/hammer.png" alt="Martello" onclick="breakEgg()">
     <img id="egg" src="images/chocolate_egg.png" alt="Uovo di cioccolato">
     <img id="surprise" src="images/FacciaDaUovo.jpg" alt="Sorpresa!">
@@ -52,15 +73,35 @@
         function breakEgg() {
             const egg = document.getElementById('egg');
             const surprise = document.getElementById('surprise');
+            const body = document.body;
 
+            // Nascondi l'uovo
             egg.style.transform = 'scale(0.1)';
             egg.style.opacity = '0';
 
+            // Frammentazione e esplosione pezzi
             setTimeout(() => {
                 egg.style.display = 'none';
+
+                for (let i = 0; i < 10; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'egg-piece';
+                    piece.style.left = `${egg.offsetLeft + 100}px`;
+                    piece.style.top = `${egg.offsetTop + 100}px`;
+                    body.appendChild(piece);
+
+                    const angle = Math.random() * 2 * Math.PI;
+                    const distance = Math.random() * 200;
+                    piece.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`;
+                }
+
                 surprise.style.display = 'block';
             }, 500);
         }
+
+        // Avvia il suono di sottofondo
+        const backgroundSound = document.getElementById('background-sound');
+        backgroundSound.play();
     </script>
 </body>
 </html>
