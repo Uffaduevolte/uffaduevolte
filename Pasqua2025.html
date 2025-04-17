@@ -70,22 +70,20 @@
     <img id="surprise" src="images/FacciaDaUovo.jpg" alt="Sorpresa!">
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        function playVideo() {
+            const hammer = document.getElementById('hammer');
+            const videoContainer = document.getElementById('video-container');
+            const eggVideo = document.getElementById('egg-video');
+            const surprise = document.getElementById('surprise');
             const backgroundSound = document.getElementById('background-sound');
-            // Avvia automaticamente il suono di sottofondo
+
+            // Avvia il suono di sottofondo
             backgroundSound.play().catch((error) => {
                 console.log(
                     'Impossibile avviare automaticamente il suono (potrebbero esserci restrizioni del browser):',
                     error
                 );
             });
-        });
-
-        function playVideo() {
-            const hammer = document.getElementById('hammer');
-            const videoContainer = document.getElementById('video-container');
-            const eggVideo = document.getElementById('egg-video');
-            const surprise = document.getElementById('surprise');
 
             // Sposta il martello in basso sovrapponendolo al video e dissolvilo
             hammer.style.top = '33%'; // Scende fino al primo terzo
