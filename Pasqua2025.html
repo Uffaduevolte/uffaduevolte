@@ -40,8 +40,6 @@
         #video-container {
             display: block; /* Rendi visibile il video */
             position: relative;
-            border: 2px solid #000; /* Bordo nero di 2 pixel attorno al video */
-            box-sizing: border-box; /* Assicura che il bordo sia incluso nelle dimensioni totali */
         }
 
         #egg-video {
@@ -62,7 +60,7 @@
     </style>
 </head>
 <body>
-    <audio id="background-sound" src="Sounds/jingle01.mp3" loop></audio>
+    <audio id="background-sound" src="Sounds/jingle01.mp3" loop="false"></audio>
     <img id="hammer" src="images/hammer.png" alt="Martello" onclick="playVideo()">
     
     <div id="video-container">
@@ -82,12 +80,17 @@
             const surprise = document.getElementById('surprise');
             const backgroundSound = document.getElementById('background-sound');
 
-            // Avvia il suono di sottofondo
-            backgroundSound.play().catch((error) => {
-                console.log(
-                    'Impossibile avviare automaticamente il suono (potrebbero esserci restrizioni del browser):',
-                    error
-                );
+            // Avvia il suono di sottofondo e riproducilo solo 2 volte
+            backgroundSound.loop = false; // Disabilita il loop infinito
+            backgroundSound.play();
+            let playCount = 0;
+
+            backgroundSound.addEventListener('ended', () => {
+                playCount++;
+                if (playCount < 2) {
+                    backgroundSound.currentTime = 0; // Riavvia il suono
+                    backgroundSound.play();
+                }
             });
 
             // Sposta il martello in basso, aggiunge rotazione e dissolvilo
