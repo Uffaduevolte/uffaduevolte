@@ -40,11 +40,13 @@
         #video-container {
             display: block; /* Rendi visibile il video */
             position: relative;
+            border: 2px solid #000; /* Bordo nero di 2 pixel attorno al video */
+            box-sizing: border-box; /* Assicura che il bordo sia incluso nelle dimensioni totali */
         }
 
         #egg-video {
             width: 266px; /* Riduci la larghezza del video a 2/3 */
-            border: none; /* Rimuove eventuali bordi */
+            border: none; /* Rimuove eventuali bordi interni */
             margin: 0; /* Elimina margini */
             padding: 0; /* Elimina padding */
             box-sizing: border-box; /* Assicura che non ci siano bordi non necessari */
@@ -88,10 +90,10 @@
                 );
             });
 
-            // Sposta il martello in basso sovrapponendolo al video, aggiunge rotazione e dissolvilo
+            // Sposta il martello in basso, aggiunge rotazione e dissolvilo
             hammer.style.top = '33%'; // Scende fino al primo terzo
             hammer.style.opacity = '1'; // Inizia opaco al 100%
-            hammer.style.transform = 'translateX(-50%) rotate(-20deg)'; // Aggiunta rotazione di 20 gradi in senso antiorario
+            hammer.style.transform = 'translateX(-50%) rotate(-20deg)'; // Ruota di 20 gradi in senso antiorario
             setTimeout(() => {
                 hammer.style.opacity = '0'; // Dissolve gradualmente in 2 secondi
             }, 1000); // Dopo 1 secondo
