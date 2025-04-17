@@ -23,7 +23,17 @@
             width: 140px; /* Ingrandito del 40% */
             cursor: pointer;
             z-index: 2; /* Assicurarsi che il martello sia sopra il video */
+            animation: bounce 1s infinite; /* Animazione del martello */
             transition: top 2s ease, opacity 2s ease; /* Animazioni per la discesa e dissolvenza */
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translate(-50%, 0);
+            }
+            50% {
+                transform: translate(-50%, -10px); /* Alzarsi e abbassarsi */
+            }
         }
 
         #video-container {
@@ -38,7 +48,7 @@
         #surprise {
             display: none;
             width: 200px; /* Dimensione iniziale */
-            transition: transform 10s ease; /* Effetto di raddoppio dimensioni */
+            transition: transform 10s ease; /* Effetto di zoom lento in 10 secondi */
         }
     </style>
 </head>
@@ -84,7 +94,7 @@
             eggVideo.addEventListener('ended', () => {
                 videoContainer.style.display = 'none';
                 surprise.style.display = 'block';
-                surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni
+                surprise.style.transform = 'scale(2)'; // Raddoppia le dimensioni lentamente
             });
         }
 
