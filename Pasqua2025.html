@@ -30,81 +30,56 @@
             }
         }
 
-        #egg {
-            width: 200px;
-            transition: transform 0.5s, opacity 0.5s;
-            border-radius: 50%;
-            box-shadow: none;
+        #video-container {
+            display: none;
+            position: relative;
         }
 
         #surprise {
             display: none;
-            width: 133px; /* 2/3 di 200px */
-        }
-
-        .egg-piece {
-            position: absolute;
-            width: 30px; /* Dimensioni più piccole */
-            height: 30px;
-            background-image: url('images/chocolate_texture.png'); /* Texture cioccolato */
-            background-size: cover;
-            border-radius: 50%;
-            animation: explode 1s forwards;
-        }
-
-        @keyframes explode {
-            from {
-                transform: translate(0, 0) scale(1);
-                opacity: 1;
-            }
-            to {
-                transform: translate(calc(100px - 50%), calc(100px - 50%)) scale(0);
-                opacity: 0;
-            }
+            width: 200px;
         }
     </style>
 </head>
 <body>
     <audio id="background-sound" src="Sounds/jingle01.mp3" loop autoplay></audio>
-    <img id="hammer" src="images/hammer.png" alt="Martello" onclick="breakEgg()">
-    <img id="egg" src="images/chocolate_egg.png" alt="Uovo di cioccolato">
+    <img id="hammer" src="images/hammer.png" alt="Martello" onclick="playVideo()">
+    
+    <div id="video-container">
+        <video id="egg-video" width="400" preload="metadata">
+            <source src="Video/EggExplosion.mp4" type="video/mp4">
+            Il tuo browser non supporta il tag video.
+        </video>
+    </div>
+    
     <img id="surprise" src="images/FacciaDaUovo.jpg" alt="Sorpresa!">
 
     <script>
-        function breakEgg() {
-            const egg = document.getElementById('egg');
+        function playVideo() {
+            const hammer = document.getElementById('hammer');
+            const videoContainer = document.getElementById('video-container');
+            const eggVideo = document.getElementById('egg-video');
             const surprise = document.getElementById('surprise');
-            const body = document.body;
 
-            // Nascondi l'uovo con animazione
-            egg.style.transform = 'scale(0.1)';
-            egg.style.opacity = '0';
+            // Nascondi il martello e mostra il video
+            hammer.style.display = 'none';
+            videoContainer.style.display = 'block';
 
-            // Frammentazione e esplosione pezzi
-            setTimeout(() => {
-                egg.style.display = 'none';
+            // Avvia il video
+            eggVideo.play();
 
-                for (let i = 0; i < 15; i++) { // Aumentato il numero di frammenti
-                    const piece = document.createElement('div');
-                    piece.className = 'egg-piece';
-                    piece.style.left = `${egg.offsetLeft + egg.offsetWidth / 2}px`;
-                    piece.style.top = `${egg.offsetTop + egg.offsetHeight / 2}px`;
-                    body.appendChild(piece);
-
-                    const angle = Math.random() * 2 * Math.PI;
-                    const distance = Math.random() * 150; // Distanza massima più limitata
-                    piece.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(1)`;
-
-                    // Rimuovi il frammento dopo l'animazione
-                    setTimeout(() => {
-                        piece.remove();
-                    }, 1000);
-                }
-
-                // Mostra la sorpresa
+            // Mostra l'immagine sorpresa al termine del video
+            eggVideo.addEventListener('ended', () => {
+                videoContainer.style.display = 'none';
                 surprise.style.display = 'block';
-            }, 500);
+            });
         }
+
+        // Pausa il video sul primo frame
+        const eggVideo = document.getElementById('egg-video');
+        eggVideo.addEventListener('loadedmetadata', () => {
+            eggVideo.currentTime = 0;
+        });
 
         // Avvia il suono di sottofondo
         const backgroundSound = document.getElementById('background-sound');
