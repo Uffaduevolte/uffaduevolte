@@ -17,12 +17,13 @@
 
         #hammer {
             position: absolute;
-            top: 10%; /* Sposta il martello più in alto */
+            top: 10%; /* Posizione iniziale del martello */
             left: 50%;
             transform: translateX(-50%);
             width: 100px;
             cursor: pointer;
             animation: bounce 1s infinite;
+            z-index: 2; /* Assicurarsi che il martello sia sopra il video */
         }
 
         @keyframes bounce {
@@ -50,7 +51,7 @@
     </style>
 </head>
 <body>
-    <audio id="background-sound" src="Sounds/jingle01.mp3" loop autoplay></audio>
+    <audio id="background-sound" src="Sounds/jingle01.mp3" loop></audio>
     <img id="hammer" src="images/hammer.png" alt="Martello" onclick="playVideo()">
     
     <div id="video-container">
@@ -68,11 +69,22 @@
             const videoContainer = document.getElementById('video-container');
             const eggVideo = document.getElementById('egg-video');
             const surprise = document.getElementById('surprise');
+            const backgroundSound = document.getElementById('background-sound');
+
+            // Sposta il martello in basso sovrapponendolo al video
+            hammer.style.top = '0'; /* Sposta il martello sopra */
+            hammer.style.transform = 'translate(-50%, 0)'; /* Centra orizzontalmente */
+            hammer.style.height = '20%'; /* Occupa il primo quinto del video */
+
+            // Avvia il jingle di sottofondo
+            backgroundSound.play();
 
             // Nascondi il martello e mostra il video
             hammer.style.display = 'none';
             videoContainer.style.display = 'block';
 
+
+```html
             // Avvia il video
             eggVideo.play();
 
@@ -89,9 +101,13 @@
             eggVideo.currentTime = 0;
         });
 
-        // Avvia il suono di sottofondo
+        // Assicurati che il suono di sottofondo sia avviato automaticamente
         const backgroundSound = document.getElementById('background-sound');
-        backgroundSound.play();
+        document.addEventListener('DOMContentLoaded', () => {
+            backgroundSound.play().catch((error) => {
+                console.warn('Impossibile avviare automaticamente il suono:', error);
+            });
+        });
     </script>
 </body>
 </html>
