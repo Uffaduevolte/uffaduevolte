@@ -47,7 +47,7 @@
 
         #surprise {
             display: none;
-            width: 200px; /* Dimensione iniziale */
+            width: 100px; /* Dimensione iniziale ridotta */
             transition: transform 10s ease; /* Effetto di zoom lento in 10 secondi */
         }
     </style>
@@ -70,7 +70,7 @@
             const backgroundSound = document.getElementById('background-sound');
             // Avvia automaticamente il suono di sottofondo
             backgroundSound.play().catch((error) => {
-                console.log('Impossibile avviare automaticamente il suono', error);
+                console.log('Impossibile avviare automaticamente il suono:', error);
             });
         });
 
@@ -90,7 +90,7 @@
             // Avvia il video
             eggVideo.play();
 
-            // Mostra l'immagine sorpresa al termine del video
+            // Mostra l'immagine sorpresa al termine del video con effetto di zoom
             eggVideo.addEventListener('ended', () => {
                 videoContainer.style.display = 'none';
                 surprise.style.display = 'block';
