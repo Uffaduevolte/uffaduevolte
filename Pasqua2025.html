@@ -49,6 +49,7 @@
             padding: 0; /* Elimina padding */
             box-sizing: border-box; /* Assicura che non ci siano bordi non necessari */
             outline: none; /* Rimuove eventuali bordi visivi */
+            mix-blend-mode: lighten; /* Rendi trasparente il nero */
         }
 
         #surprise {
@@ -104,13 +105,15 @@
             // Avvia il video
             eggVideo.play();
 
-            // Mostra l'immagine sorpresa al termine del video con effetto di zoom
-            eggVideo.addEventListener('ended', () => {
-                videoContainer.style.display = 'none';
-                surprise.style.display = 'block'; // Rendi visibile l'immagine
-                setTimeout(() => {
-                    surprise.style.transform = 'scale(3)'; // Raddoppia le dimensioni lentamente
-                }, 50); // Inizia subito l'ingrandimento (leggero ritardo per sicurezza)
+            // Mostra l'immagine sorpresa mezzo secondo prima della fine del video
+            eggVideo.addEventListener('timeupdate', () => {
+                if (eggVideo.duration - eggVideo.currentTime <= 0.5) {
+                    videoContainer.style.display = 'none';
+                    surprise.style.display = 'block'; // Rendi visibile l'immagine
+                    setTimeout(() => {
+                        surprise.style.transform = 'scale(3)'; // Ingrandisce lentamente
+                    }, 50); // Inizia subito l'ingrandimento (leggero ritardo per sicurezza)
+                }
             });
         }
 
