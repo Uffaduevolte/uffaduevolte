@@ -20,20 +20,20 @@
             position: absolute;
             top: 10%; /* Posizione iniziale del martello */
             left: 55%; /* Spostato leggermente a destra */
-            transform: translateX(-50%) rotate(0deg); /* Aggiunto rotate iniziale */
+            transform: translateX(-50%) scale(1); /* Imposta la scala iniziale */
             width: 140px; /* Ingrandito del 40% */
             cursor: pointer;
             z-index: 2; /* Assicurarsi che il martello sia sopra il video */
-            animation: bounce 1s infinite; /* Animazione del martello */
+            animation: pulsazione 1.5s infinite; /* Nuova animazione di pulsazione */
             transition: top 2s ease, opacity 2s ease, transform 2s ease; /* Aggiunta transizione per la rotazione */
         }
 
-        @keyframes bounce {
+        @keyframes pulsazione {
             0%, 100% {
-                transform: translate(-50%, 0);
+                transform: translateX(-50%) scale(1); /* Dimensione originale */
             }
             50% {
-                transform: translate(-50%, -10px); /* Alzarsi e abbassarsi */
+                transform: translateX(-50%) scale(1.1); /* Ingrandisce del 10% */
             }
         }
 
