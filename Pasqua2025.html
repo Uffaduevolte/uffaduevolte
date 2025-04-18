@@ -98,11 +98,10 @@
             });
 
             // Sposta il martello, ruotalo e dissolvilo
-            hammer.style.top = '33%';
-            hammer.style.opacity = '1';
-            hammer.style.transform = 'translateX(-50%) rotate(-20deg)';
+            hammer.style.top = '33%'; // Sposta verso il basso
+            hammer.style.transform = 'translateX(-50%) rotate(-20deg)'; // Ruota di 20 gradi in senso antiorario
             setTimeout(() => {
-                hammer.style.opacity = '0';
+                hammer.style.opacity = '0'; // Dissolve gradualmente
             }, 2000);
 
             // Avvia il video
