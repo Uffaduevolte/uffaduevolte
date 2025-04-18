@@ -16,14 +16,34 @@
             overflow: hidden; /* Nasconde eventuali elementi in eccesso */
         }
 
+        #hammer {
+            position: absolute;
+            top: 10%; /* Posizione iniziale del martello */
+            left: 55%; /* Spostato leggermente a destra */
+            transform: translateX(-50%) scale(1); /* Imposta la scala iniziale */
+            width: 140px; /* Ingrandito del 40% */
+            cursor: pointer;
+            z-index: 2; /* Assicurarsi che il martello sia sopra il video */
+            animation: pulsazione 1.5s infinite; /* Nuova animazione di pulsazione */
+            transition: top 2s ease, opacity 2s ease, transform 2s ease; /* Aggiunta transizione per la rotazione */
+        }
+
+        @keyframes pulsazione {
+            0%, 100% {
+                transform: translateX(-50%) scale(1); /* Dimensione originale */
+            }
+            50% {
+                transform: translateX(-50%) scale(1.25); /* Ingrandisce del 25% */
+            }
+        }
+
         #video-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: block; /* Rendi visibile il video */
+            position: relative;
         }
 
         #egg-video {
-            width: 720px; /* Larghezza del video */
+            width: 720px; /* larghezza del video */
             border: none; /* Rimuove eventuali bordi interni */
             margin: 0; /* Elimina margini */
             padding: 0; /* Elimina padding */
@@ -36,7 +56,6 @@
             width: 100px; /* Dimensione iniziale ridotta */
             transform: scale(1); /* Assicurati che parta dalla dimensione originale */
             transition: transform 10s ease; /* Effetto di zoom lento in 10 secondi */
-            margin-top: 20px; /* Spazio tra il video e l'immagine */
         }
     </style>
 </head>
@@ -49,16 +68,32 @@
             <source src="Video/EggExplosion.mp4" type="video/mp4">
             Il tuo browser non supporta il tag video.
         </video>
-        <img id="surprise" src="images/FacciaDaUovo.jpg" alt="Sorpresa!">
     </div>
+    
+    <img id="surprise" src="images/FacciaDaUovo.jpg" alt="Sorpresa!">
 
     <script>
         function playVideo() {
             const hammer = document.getElementById('hammer');
+            const videoContainer = document.getElementById('video-container');
             const eggVideo = document.getElementById('egg-video');
             const surprise = document.getElementById('surprise');
+            const backgroundSound = document.getElementById('background-sound');
 
-            // Sposta il martello e avvia il video
+            // Avvia il suono di sottofondo e riproducilo solo 2 volte
+            backgroundSound.loop = false; // Disabilita il loop infinito
+            backgroundSound.play();
+            let playCount = 0;
+
+            backgroundSound.addEventListener('ended', () => {
+                playCount++;
+                if (playCount < 1) {
+                    backgroundSound.currentTime = 0; // Riavvia il suono
+                    backgroundSound.play();
+                }
+            });
+
+            // Sposta il martello in basso, aggiunge rotazione e dissolvilo
             hammer.style.top = '33%'; // Scende fino al primo terzo
             hammer.style.opacity = '1'; // Inizia opaco al 100%
             hammer.style.transform = 'translateX(-50%) rotate(-20deg)'; // Ruota di 20 gradi in senso antiorario
@@ -69,15 +104,9 @@
             // Avvia il video
             eggVideo.play();
 
-            // Mostra l'immagine sorpresa mezzo secondo prima della fine del video
-            eggVideo.addEventListener('timeupdate', () => {
-                if (eggVideo.duration - eggVideo.currentTime <= 0.5) {
-                    surprise.style.display = 'block';
-                }
-            });
-
-            // Mantieni l'immagine visibile al termine del video con effetto di zoom
+            // Mostra l'immagine sorpresa al termine del video con effetto di zoom
             eggVideo.addEventListener('ended', () => {
+                videoContainer.style.display = 'none';
                 surprise.style.display = 'block'; // Rendi visibile l'immagine
                 setTimeout(() => {
                     surprise.style.transform = 'scale(3)'; // Raddoppia le dimensioni lentamente
