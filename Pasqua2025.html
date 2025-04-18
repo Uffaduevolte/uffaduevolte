@@ -33,7 +33,7 @@
                 transform: translateX(-50%) scale(1); /* Dimensione originale */
             }
             50% {
-                transform: translateX(-50%) scale(1.1); /* Ingrandisce del 10% */
+                transform: translateX(-50%) scale(1.25); /* Ingrandisce del 25% */
             }
         }
 
@@ -43,7 +43,7 @@
         }
 
         #egg-video {
-            width: 500px; /* Riduci la larghezza del video a 2/3 */
+            width: 720px; /* larghezza del video */
             border: none; /* Rimuove eventuali bordi interni */
             margin: 0; /* Elimina margini */
             padding: 0; /* Elimina padding */
@@ -87,7 +87,7 @@
 
             backgroundSound.addEventListener('ended', () => {
                 playCount++;
-                if (playCount < 2) {
+                if (playCount < 1) {
                     backgroundSound.currentTime = 0; // Riavvia il suono
                     backgroundSound.play();
                 }
