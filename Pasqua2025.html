@@ -17,6 +17,7 @@
             background-size: cover; /* Adatta l'immagine alla dimensione dello schermo */
             background-position: center; /* Centra l'immagine */
             overflow: hidden; /* Nasconde eventuali elementi in eccesso */
+            transition: opacity 1s ease; /* Effetto dissolvenza */
         }
 
         #hammer {
@@ -59,7 +60,8 @@
             display: none;
             width: 100px; /* Dimensione iniziale ridotta */
             transform: scale(1); /* Assicurati che parta dalla dimensione originale */
-            transition: transform 10s ease; /* Effetto di zoom lento in 10 secondi */
+            transition: transform 10s ease, opacity 1s ease; /* Effetto di zoom lento e dissolvenza graduale */
+            opacity: 1; /* Opacità iniziale */
         }
     </style>
 </head>
@@ -83,27 +85,25 @@
             const eggVideo = document.getElementById('egg-video');
             const surprise = document.getElementById('surprise');
             const backgroundSound = document.getElementById('background-sound');
+            const body = document.body;
 
-            // Avvia il suono di sottofondo e riproducilo solo 2 volte
+            // Avvia il suono di sottofondo
             backgroundSound.loop = false; // Disabilita il loop infinito
             backgroundSound.play();
-            let playCount = 0;
 
+            // Gestisci la dissolvenza al termine del suono
             backgroundSound.addEventListener('ended', () => {
-                playCount++;
-                if (playCount < 1) {
-                    backgroundSound.currentTime = 0; // Riavvia il suono
-                    backgroundSound.play();
-                }
+                surprise.style.opacity = '0'; // Avvia dissolvenza dell'immagine sorpresa
+                body.style.opacity = '0'; // Avvia dissolvenza del corpo
             });
 
-            // Sposta il martello in basso, aggiunge rotazione e dissolvilo
-            hammer.style.top = '33%'; // Scende fino al primo terzo
-            hammer.style.opacity = '1'; // Inizia opaco al 100%
-            hammer.style.transform = 'translateX(-50%) rotate(-20deg)'; // Ruota di 20 gradi in senso antiorario
+            // Sposta il martello, ruotalo e dissolvilo
+            hammer.style.top = '33%';
+            hammer.style.opacity = '1';
+            hammer.style.transform = 'translateX(-50%) rotate(-20deg)';
             setTimeout(() => {
-                hammer.style.opacity = '0'; // Dissolve gradualmente in 2 secondi
-            }, 2000); // Dopo 2 secondi per rendere visibile la rotazione
+                hammer.style.opacity = '0';
+            }, 2000);
 
             // Avvia il video
             eggVideo.play();
@@ -112,10 +112,10 @@
             eggVideo.addEventListener('timeupdate', () => {
                 if (eggVideo.duration - eggVideo.currentTime <= 0.5) {
                     videoContainer.style.display = 'none';
-                    surprise.style.display = 'block'; // Rendi visibile l'immagine
+                    surprise.style.display = 'block';
                     setTimeout(() => {
-                        surprise.style.transform = 'scale(3)'; // Ingrandisce lentamente
-                    }, 50); // Inizia subito l'ingrandimento (leggero ritardo per sicurezza)
+                        surprise.style.transform = 'scale(3)';
+                    }, 50);
                 }
             });
         }
