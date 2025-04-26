@@ -86,7 +86,7 @@ class AudioRecorderApp:
             self.on_select,
             'horizontal',
             useblit=True,
-            rectprops=dict(alpha=0.5, facecolor='orange')
+            span_stays=True  # Mantiene la selezione visibile
         )
 
     def toggle_recording(self):
