@@ -31,6 +31,7 @@ class AudioRecorderApp:
 
     def create_widgets(self):
         padding = 15
+        button_width = 150  # Larghezza uniforme per tutti i tasti
 
         # Contenitore principale
         self.main_frame = ctk.CTkFrame(self.root, fg_color="#2E2E2E")  # Sfondo uniforme grigio
@@ -38,32 +39,40 @@ class AudioRecorderApp:
 
         # Frame per i pulsanti
         self.button_frame = ctk.CTkFrame(self.main_frame, fg_color="#2E2E2E")  # Sfondo grigio
-        self.button_frame.pack(side="left", fill="y", padx=padding)
+        self.button_frame.pack(side="left", fill="y", padx=padding, anchor="n")
 
+        # Label "Audio Recorder" allineata a sinistra
         self.title_label = ctk.CTkLabel(
             self.button_frame,
             text="Audio Recorder",
             font=ctk.CTkFont(size=18, weight="bold"),
-            text_color="#FFA500"  # Colore arancione
+            text_color="#FFA500",  # Colore arancione
+            anchor="w"  # Allineamento a sinistra
         )
-        self.title_label.pack(pady=(padding, 5))
+        self.title_label.pack(fill="x", pady=(padding, 5))
 
-        self.record_button = ctk.CTkButton(self.button_frame, text="Start", command=self.toggle_recording, width=75)
-        self.record_button.pack(pady=5)
+        # Pulsanti allineati a sinistra con larghezza uniforme
+        self.record_button = ctk.CTkButton(self.button_frame, text="Start", command=self.toggle_recording, width=button_width)
+        self.record_button.pack(pady=5, anchor="w")
 
-        # Pulsanti di interazione
-        self.preview_button = ctk.CTkButton(self.button_frame, text="Preview", command=self.preview_recording, width=75)
-        self.save_button = ctk.CTkButton(self.button_frame, text="Save", command=self.save_recording, width=75)
-        self.trim_confirm_button = ctk.CTkButton(self.button_frame, text="Conferma Taglio", command=self.confirm_trim, width=150)
+        self.preview_button = ctk.CTkButton(self.button_frame, text="Preview", command=self.preview_recording, width=button_width)
+        self.preview_button.pack(pady=5, anchor="w")
+
+        self.save_button = ctk.CTkButton(self.button_frame, text="Save", command=self.save_recording, width=button_width)
+        self.save_button.pack(pady=5, anchor="w")
+
+        self.trim_confirm_button = ctk.CTkButton(self.button_frame, text="Confirm Cut", command=self.confirm_trim, width=button_width)
         self.trim_confirm_button.pack_forget()  # Nascondi il pulsante di conferma inizialmente
 
+        # Label dei messaggi allineata a sinistra
         self.message_label = ctk.CTkLabel(
             self.button_frame,
             text="",
             font=ctk.CTkFont(size=14),
-            text_color="#FFA500"  # Colore arancione
+            text_color="#FFA500",  # Colore arancione
+            anchor="w"  # Allineamento a sinistra
         )
-        self.message_label.pack(pady=(padding, 5))
+        self.message_label.pack(fill="x", pady=(padding, 5))
 
         # Frame per il grafico
         self.graph_frame = ctk.CTkFrame(self.main_frame, fg_color="#2E2E2E")  # Sfondo grigio
@@ -101,8 +110,8 @@ class AudioRecorderApp:
             self.record_button.configure(text="Start")
             # Mostra i pulsanti Preview e Save solo se esiste un file temporaneo
             if os.path.exists(self.temp_file_path):
-                self.preview_button.pack(pady=5)
-                self.save_button.pack(pady=5)
+                self.preview_button.pack(pady=5, anchor="w")
+                self.save_button.pack(pady=5, anchor="w")
 
     def start_recording(self):
         if not self.recording:
@@ -150,11 +159,16 @@ class AudioRecorderApp:
             threading.Timer(3.0, lambda: self.message_label.configure(text="")).start()
 
     def preview_recording(self):
-        if not os.path.exists(self.temp_file_path):
+        """Riproduce la versione tagliata se presente, altrimenti la versione originale."""
+        if os.path.exists(self.trim_file_path):
+            file_to_play = self.trim_file_path
+        elif os.path.exists(self.temp_file_path):
+            file_to_play = self.temp_file_path
+        else:
             self.message_label.configure(text="No recording to preview. Please record audio first.")
             return
 
-        sd.play(sf.read(self.temp_file_path, dtype='float32')[0], samplerate=self.sample_rate)
+        sd.play(sf.read(file_to_play, dtype='float32')[0], samplerate=self.sample_rate)
 
     def plot_waveform(self):
         if not self.audio_data:
@@ -188,7 +202,7 @@ class AudioRecorderApp:
         self.trim_start = int(xmin * self.sample_rate)
         self.trim_end = int(xmax * self.sample_rate)
         self.message_label.configure(text=f"Selected range: {xmin:.2f}s to {xmax:.2f}s")
-        self.trim_confirm_button.pack(pady=5)  # Mostra il pulsante di conferma del taglio
+        self.trim_confirm_button.pack(pady=5, anchor="w")  # Mostra il pulsante di conferma del taglio
 
     def confirm_trim(self):
         """Conferma il taglio e aggiorna il grafico."""
