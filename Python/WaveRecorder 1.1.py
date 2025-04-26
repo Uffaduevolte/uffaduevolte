@@ -22,8 +22,16 @@ class AudioRecorderApp:
         self.recording = False
         self.audio_data = []
         self.sample_rate = 44100
-        self.temp_file_path = "temp_recording.wav"
-        self.trim_file_path = "trimmed_temp.wav"
+
+        # Percorso dei file temporanei nella cartella C:/Temp
+        self.temp_dir = "C:/Temp"
+        self.temp_file_path = os.path.join(self.temp_dir, "temp_recording.wav")
+        self.trim_file_path = os.path.join(self.temp_dir, "trimmed_temp.wav")
+
+        # Crea la cartella C:/Temp se non esiste
+        if not os.path.exists(self.temp_dir):
+            os.makedirs(self.temp_dir)
+
         self.trim_start = None
         self.trim_end = None
 
@@ -163,7 +171,9 @@ class AudioRecorderApp:
 
         try:
             data, samplerate = sf.read(file_to_play, dtype='float32')
+            sd.stop()
             sd.play(data, samplerate=samplerate)
+            self.message_label.configure(text="Playing audio...")
         except Exception as e:
             self.message_label.configure(text=f"Error during playback: {str(e)}")
 
