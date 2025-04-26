@@ -5,6 +5,7 @@ import soundfile as sf
 import threading
 import numpy as np
 import os
+import shutil
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.widgets import SpanSelector
@@ -23,12 +24,9 @@ class AudioRecorderApp:
         self.audio_data = []
         self.sample_rate = 44100
 
-        # Percorso dei file temporanei nella cartella C:/Temp
         self.temp_dir = "C:/Temp"
         self.temp_file_path = os.path.join(self.temp_dir, "temp_recording.wav")
-        self.trim_file_path = os.path.join(self.temp_dir, "trimmed_temp.wav")
 
-        # Crea la cartella C:/Temp se non esiste
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
 
@@ -37,52 +35,45 @@ class AudioRecorderApp:
 
         self.create_widgets()
 
+        # Pulizia file temporanei alla chiusura
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
     def create_widgets(self):
         padding = 15
         button_width = 150
 
-        # Contenitore principale
         self.main_frame = ctk.CTkFrame(self.root, fg_color="#2E2E2E")
         self.main_frame.pack(fill="both", expand=True, padx=padding, pady=padding)
 
-        # Frame per i pulsanti
         self.button_frame = ctk.CTkFrame(self.main_frame, fg_color="#2E2E2E")
         self.button_frame.pack(side="left", fill="y", padx=padding, anchor="n")
 
-        # Label "Audio Recorder"
         self.title_label = ctk.CTkLabel(
-            self.button_frame,
-            text="Audio Recorder",
-            font=ctk.CTkFont(size=18, weight="bold"),
-            text_color="#FFA500",
+            self.button_frame, text="Audio Recorder",
+            font=ctk.CTkFont(size=18, weight="bold"), text_color="#FFA500",
             anchor="w"
         )
         self.title_label.pack(fill="x", pady=(padding, 5))
 
-        # Pulsanti
         self.record_button = ctk.CTkButton(self.button_frame, text="Start", command=self.toggle_recording, width=button_width)
         self.record_button.pack(pady=5, anchor="w")
 
         self.preview_button = ctk.CTkButton(self.button_frame, text="Preview", command=self.preview_recording, width=button_width)
-        self.preview_button.pack(pady=5, anchor="w")
+        self.preview_button.pack_forget()
 
         self.save_button = ctk.CTkButton(self.button_frame, text="Save", command=self.save_recording, width=button_width)
-        self.save_button.pack(pady=5, anchor="w")
+        self.save_button.pack_forget()
 
         self.trim_confirm_button = ctk.CTkButton(self.button_frame, text="Confirm Cut", command=self.confirm_trim, width=button_width)
         self.trim_confirm_button.pack_forget()
 
-        # Label dei messaggi
         self.message_label = ctk.CTkLabel(
-            self.button_frame,
-            text="",
-            font=ctk.CTkFont(size=14),
-            text_color="#FFA500",
+            self.button_frame, text="",
+            font=ctk.CTkFont(size=14), text_color="#FFA500",
             anchor="w"
         )
         self.message_label.pack(fill="x", pady=(padding, 5))
 
-        # Frame per il grafico
         self.graph_frame = ctk.CTkFrame(self.main_frame, fg_color="#2E2E2E")
         self.graph_frame.pack(side="left", fill="both", expand=True, padx=padding)
 
@@ -95,13 +86,7 @@ class AudioRecorderApp:
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.graph_frame)
         self.canvas.get_tk_widget().pack(fill='both', expand=True)
 
-        # Aggiungi selettore di area
-        self.span_selector = SpanSelector(
-            self.ax,
-            self.on_select,
-            'horizontal',
-            useblit=True
-        )
+        self.span_selector = SpanSelector(self.ax, self.on_select, 'horizontal', useblit=True)
 
     def toggle_recording(self):
         if not self.recording:
@@ -118,12 +103,11 @@ class AudioRecorderApp:
                 self.save_button.pack(pady=5, anchor="w")
 
     def start_recording(self):
-        if not self.recording:
-            self.recording = True
-            self.audio_data = []
-            self.clear_plot()
-            threading.Thread(target=self.record_audio).start()
-            self.message_label.configure(text="Recording started.")
+        self.recording = True
+        self.audio_data.clear()
+        self.clear_plot()
+        threading.Thread(target=self.record_audio).start()
+        self.message_label.configure(text="Recording started.")
 
     def record_audio(self):
         with sd.InputStream(samplerate=self.sample_rate, channels=1, callback=self.audio_callback):
@@ -155,43 +139,50 @@ class AudioRecorderApp:
 
         file_path = filedialog.asksaveasfilename(defaultextension=".wav", filetypes=[("WAV files", "*.wav")])
         if file_path:
-            os.rename(self.temp_file_path, file_path)
+            shutil.copy(self.temp_file_path, file_path)
             self.message_label.configure(text=f"Recording saved as {file_path}")
-            self.clean_temp_files()
+            self.clean_temp_file()
 
-    def clean_temp_files(self):
+    def clean_temp_file(self):
         if os.path.exists(self.temp_file_path):
             os.remove(self.temp_file_path)
-        if os.path.exists(self.trim_file_path):
-            os.remove(self.trim_file_path)
 
     def preview_recording(self):
-        if self.trim_start is not None and self.trim_end is not None:
-            try:
-                # Leggi l'audio originale
-                data, _ = sf.read(self.temp_file_path, dtype='float32')
-                
-                # Combina le parti non selezionate
-                non_selected_audio = np.concatenate((data[:self.trim_start], data[self.trim_end:]))
-                
-                # Riproduci l'audio non selezionato
+        if not os.path.exists(self.temp_file_path):
+            self.message_label.configure(text="No recording to preview. Please record audio first.")
+            return
+        try:
+            # Sempre leggere il file fresco
+            full_audio, samplerate = sf.read(self.temp_file_path, dtype='float32')
+
+            if self.trim_start is not None and self.trim_end is not None:
+                if self.trim_start >= self.trim_end or self.trim_start >= len(full_audio):
+                    self.message_label.configure(text="Invalid selection for preview.")
+                    return
+
+                if self.trim_start == 0:
+                    preview_audio = full_audio[self.trim_end:]
+                elif self.trim_end >= len(full_audio):
+                    preview_audio = full_audio[:self.trim_start]
+                else:
+                    preview_audio = np.concatenate((full_audio[:self.trim_start], full_audio[self.trim_end:]))
+
+                if preview_audio.shape[0] == 0:
+                    self.message_label.configure(text="Selection leaves no audio to play.")
+                    return
+
                 sd.stop()
-                sd.play(non_selected_audio, samplerate=self.sample_rate)
-                self.message_label.configure(text="Playing non-selected audio...")
-            except Exception as e:
-                self.message_label.configure(text=f"Error during playback: {str(e)}")
-        else:
-            # Riproduci l'audio originale se non c'è una selezione
-            if os.path.exists(self.temp_file_path):
-                try:
-                    data, samplerate = sf.read(self.temp_file_path, dtype='float32')
-                    sd.stop()
-                    sd.play(data, samplerate=samplerate)
-                    self.message_label.configure(text="Playing original audio...")
-                except Exception as e:
-                    self.message_label.configure(text=f"Error during playback: {str(e)}")
+                sd.play(preview_audio.copy(), samplerate=samplerate)
+                self.message_label.configure(text="Playing trimmed preview...")
+
             else:
-                self.message_label.configure(text="No recording to preview. Please record audio first.")
+                # Nessuna selezione → suona tutto
+                sd.stop()
+                sd.play(full_audio.copy(), samplerate=samplerate)
+                self.message_label.configure(text="Playing full audio...")
+
+        except Exception as e:
+            self.message_label.configure(text=f"Error during playback: {str(e)}")
 
     def plot_waveform(self):
         if not self.audio_data or len(self.audio_data[0]) == 0:
@@ -235,24 +226,25 @@ class AudioRecorderApp:
                 self.message_label.configure(text="Invalid trim range.")
                 return
 
-            # Creare un nuovo array audio escludendo la parte selezionata
             new_audio = np.concatenate((audio_array[:self.trim_start], audio_array[self.trim_end:]))
-            
-            # Salvare il nuovo audio tagliato nel file temporaneo
+
             sf.write(self.temp_file_path, new_audio, self.sample_rate)
-            
-            # Aggiornare self.audio_data con il nuovo audio
-            self.audio_data = [new_audio]
-            
-            # Resettare la selezione
+
+            self.audio_data.clear()
+            trimmed_data, _ = sf.read(self.temp_file_path, dtype='float32')
+            self.audio_data.append(trimmed_data.reshape(-1, 1))
+
             self.trim_start = None
             self.trim_end = None
-            
-            # Aggiornare il grafico
+
             self.plot_waveform()
 
             self.message_label.configure(text="Trim confirmed and waveform updated.")
             self.trim_confirm_button.pack_forget()
+
+    def on_close(self):
+        self.clean_temp_file()
+        self.root.destroy()
 
 if __name__ == "__main__":
     app = ctk.CTk()
