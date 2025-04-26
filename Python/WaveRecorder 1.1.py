@@ -204,7 +204,11 @@ class AudioRecorderApp:
 
         self.ax.clear()
         self.ax.plot(time_axis, audio_array, color='orange')
-        self.ax.axvspan(self.trim_start / self.sample_rate, self.trim_end / self.sample_rate, color='red', alpha=0.3)
+
+        # Controlla se trim_start e trim_end sono definiti prima di aggiungere l'area evidenziata
+        if self.trim_start is not None and self.trim_end is not None:
+            self.ax.axvspan(self.trim_start / self.sample_rate, self.trim_end / self.sample_rate, color='red', alpha=0.3)
+
         self.ax.set_facecolor('#2E2E2E')
         self.ax.set_title('Waveform', color='orange')
         self.ax.set_xlabel('Time (s)', color='orange')
