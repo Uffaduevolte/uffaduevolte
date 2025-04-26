@@ -157,12 +157,27 @@ class AudioRecorderApp:
         if file_path:
             os.rename(self.temp_file_path, file_path)
             self.message_label.configure(text=f"Recording saved as {file_path}")
+            # Rimuovi i file temporanei
+            self.clean_temp_files()
             threading.Timer(3.0, lambda: self.message_label.configure(text="")).start()
+
+    def clean_temp_files(self):
+        """Elimina i file temporanei."""
+        if os.path.exists(self.temp_file_path):
+            os.remove(self.temp_file_path)
+        if os.path.exists(self.trim_file_path):
+            os.remove(self.trim_file_path)
 
     def preview_recording(self):
         file_to_play = None
         if os.path.exists(self.trim_file_path) and os.path.getsize(self.trim_file_path) > 0:
-            file_to_play = self.trim_file_path
+            # Riproduci la parte NON selezionata
+            data, _ = sf.read(self.temp_file_path, dtype='float32')
+            non_selected_audio = np.concatenate((data[:self.trim_start], data[self.trim_end:]))
+            sd.stop()
+            sd.play(non_selected_audio, samplerate=self.sample_rate)
+            self.message_label.configure(text="Playing non-selected audio...")
+            return
         elif os.path.exists(self.temp_file_path) and os.path.getsize(self.temp_file_path) > 0:
             file_to_play = self.temp_file_path
         else:
@@ -188,15 +203,14 @@ class AudioRecorderApp:
         time_axis = np.linspace(0, len(audio_array) / self.sample_rate, num=len(audio_array))
 
         self.ax.clear()
-        max_amplitude = np.max(np.abs(audio_array))
-        self.ax.set_ylim([-max_amplitude, max_amplitude])
+        self.ax.plot(time_axis, audio_array, color='orange')
+        self.ax.axvspan(self.trim_start / self.sample_rate, self.trim_end / self.sample_rate, color='red', alpha=0.3)
         self.ax.set_facecolor('#2E2E2E')
         self.ax.set_title('Waveform', color='orange')
         self.ax.set_xlabel('Time (s)', color='orange')
         self.ax.set_ylabel('Amplitude', color='orange')
         self.ax.tick_params(axis='x', colors='orange')
         self.ax.tick_params(axis='y', colors='orange')
-        self.ax.plot(time_axis, audio_array, color='orange')
         self.canvas.draw()
 
     def clear_plot(self):
@@ -219,7 +233,7 @@ class AudioRecorderApp:
             trimmed_audio = audio_array[self.trim_start:self.trim_end]
             sf.write(self.trim_file_path, trimmed_audio, self.sample_rate)
             self.message_label.configure(text="Trim confirmed. Preview updated.")
-            self.audio_data = [trimmed_audio]
+            self.audio_data = [audio_array]  # Mantieni l'audio completo per il grafico
             self.plot_waveform()
             self.trim_confirm_button.pack_forget()
 
