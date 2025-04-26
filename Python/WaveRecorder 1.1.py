@@ -15,52 +15,85 @@ class AudioRecorderApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Audio Recorder")
-        self.root.geometry("600x400")
+        self.root.geometry("800x400")  # Dimensione della finestra
         self.root.iconbitmap(os.path.join(os.path.dirname(__file__), "io.ico"))
         
         self.recording = False
         self.audio_data = []
         self.sample_rate = 44100
-        self.dynamic_gain = 1.0  # Fattore di guadagno dinamico
+        self.temp_file_path = "temp_recording.wav"  # File temporaneo per preview e salvataggio
         
         self.create_widgets()
         
     def create_widgets(self):
         padding = 15
         
-        self.title_label = ctk.CTkLabel(self.root, text="Audio Recorder", font=ctk.CTkFont(size=18, weight="bold"))
-        self.title_label.pack(pady=(padding, 5), anchor="w", padx=padding)
+        # Contenitore principale
+        self.main_frame = ctk.CTkFrame(self.root, fg_color="#2E2E2E")  # Sfondo uniforme grigio
+        self.main_frame.pack(fill="both", expand=True, padx=padding, pady=padding)
         
-        self.record_button = ctk.CTkButton(self.root, text="Start", command=self.toggle_recording, width=75)
-        self.record_button.pack(pady=5, anchor="w", padx=padding)
+        # Frame per i pulsanti
+        self.button_frame = ctk.CTkFrame(self.main_frame, fg_color="#2E2E2E")  # Sfondo grigio
+        self.button_frame.pack(side="left", fill="y", padx=padding)
         
-        self.preview_button = ctk.CTkButton(self.root, text="Preview", command=self.preview_recording, width=75)
-        self.preview_button.pack(pady=5, anchor="w", padx=padding)
+        self.title_label = ctk.CTkLabel(
+            self.button_frame,
+            text="Audio Recorder",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="#FFA500"  # Colore arancione
+        )
+        self.title_label.pack(pady=(padding, 5))
         
-        self.save_button = ctk.CTkButton(self.root, text="Save", command=self.save_recording, width=75)
-        self.save_button.pack(pady=5, anchor="w", padx=padding)
+        self.record_button = ctk.CTkButton(self.button_frame, text="Start", command=self.toggle_recording, width=75)
+        self.record_button.pack(pady=5)
         
-        self.message_label = ctk.CTkLabel(self.root, text="", font=ctk.CTkFont(size=14))
-        self.message_label.pack(pady=(padding, 5), anchor="w", padx=padding)
+        # I pulsanti Preview e Save sono inizialmente nascosti
+        self.preview_button = ctk.CTkButton(self.button_frame, text="Preview", command=self.preview_recording, width=75)
+        self.save_button = ctk.CTkButton(self.button_frame, text="Save", command=self.save_recording, width=75)
+        
+        self.message_label = ctk.CTkLabel(
+            self.button_frame,
+            text="",
+            font=ctk.CTkFont(size=14),
+            text_color="#FFA500"  # Colore arancione
+        )
+        self.message_label.pack(pady=(padding, 5))
+        
+        # Frame per il grafico
+        self.graph_frame = ctk.CTkFrame(self.main_frame, fg_color="#2E2E2E")  # Sfondo grigio
+        self.graph_frame.pack(side="left", fill="both", expand=True, padx=padding)
         
         self.figure, self.ax = plt.subplots()
-        self.ax.set_facecolor('#2E2E2E')
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self.root)
+
+        # Imposta la cornice del grafico come nero assoluto
+        self.figure.patch.set_facecolor('black')  # Sfondo della figura
+        self.ax.set_facecolor('#2E2E2E')  # Sfondo dell'area del grafico
+        for spine in self.ax.spines.values():
+            spine.set_edgecolor('black')  # Colore dei bordi
+        
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.graph_frame)
         self.canvas.get_tk_widget().pack(fill='both', expand=True)
         
     def toggle_recording(self):
         if not self.recording:
             self.start_recording()
             self.record_button.configure(text="Stop")
+            # Nascondi i pulsanti Preview e Save durante la registrazione
+            self.preview_button.pack_forget()
+            self.save_button.pack_forget()
         else:
             self.stop_recording()
             self.record_button.configure(text="Start")
+            # Mostra i pulsanti Preview e Save solo se esiste un file temporaneo
+            if os.path.exists(self.temp_file_path):
+                self.preview_button.pack(pady=5)
+                self.save_button.pack(pady=5)
             
     def start_recording(self):
         if not self.recording:
             self.recording = True
             self.audio_data = []
-            self.dynamic_gain = 1.0  # Reset del guadagno dinamico
+            self.clear_plot()  # Pulisce il grafico all'avvio di una nuova registrazione
             threading.Thread(target=self.record_audio).start()
             self.message_label.configure(text="Recording started.")
             
@@ -73,47 +106,44 @@ class AudioRecorderApp:
         if status:
             print(status)
         if self.recording:
-            # Calcola il picco massimo nel frame corrente
-            max_amplitude = np.max(np.abs(indata))
-            
-            # Aggiorna il guadagno dinamico per compensare il volume basso
-            if max_amplitude > 0:
-                self.dynamic_gain = max(1.0, self.dynamic_gain / max_amplitude)
-            
-            # Applica il guadagno dinamico ai dati audio
-            normalized_data = indata * self.dynamic_gain
-            
-            # Aggiungi i dati normalizzati all'array audio
-            self.audio_data.append(normalized_data.copy())
+            self.audio_data.append(indata.copy())
             
     def stop_recording(self):
         if self.recording:
             self.recording = False
             self.message_label.configure(text="Recording stopped.")
-            self.plot_waveform()
+            self.save_temp_file()
+            self.plot_waveform()  # Aggiorna il grafico al termine della registrazione
+            
+    def save_temp_file(self):
+        """Salva temporaneamente l'audio registrato per preview e salvataggio successivo."""
+        if self.audio_data:
+            audio_array = np.concatenate(self.audio_data)
+            sf.write(self.temp_file_path, audio_array, self.sample_rate)
             
     def save_recording(self):
-        if not self.audio_data:
+        if not os.path.exists(self.temp_file_path):
             self.message_label.configure(text="No recording to save. Please record audio first.")
             return
         
         file_path = filedialog.asksaveasfilename(defaultextension=".wav", filetypes=[("WAV files", "*.wav")])
         if file_path:
-            audio_array = np.concatenate(self.audio_data)
-            sf.write(file_path, audio_array, self.sample_rate)
+            os.rename(self.temp_file_path, file_path)  # Sposta il file temporaneo nella destinazione finale
             self.message_label.configure(text=f"Recording saved as {file_path}")
             # Clear message after saving
             threading.Timer(3.0, lambda: self.message_label.configure(text="")).start()
             
     def preview_recording(self):
-        if not self.audio_data:
+        if not os.path.exists(self.temp_file_path):
             self.message_label.configure(text="No recording to preview. Please record audio first.")
             return
         
-        audio_array = np.concatenate(self.audio_data)
-        sd.play(audio_array, samplerate=self.sample_rate)
+        sd.play(sf.read(self.temp_file_path, dtype='float32')[0], samplerate=self.sample_rate)
         
     def plot_waveform(self):
+        if not self.audio_data:
+            return
+        
         audio_array = np.concatenate(self.audio_data)
         time_axis = np.linspace(0, len(audio_array) / self.sample_rate, num=len(audio_array))
         
@@ -142,6 +172,11 @@ class AudioRecorderApp:
         self.ax.plot(time_axis, audio_array, color='orange')
         
         # Draw canvas
+        self.canvas.draw()
+    
+    def clear_plot(self):
+        """Pulisce il grafico."""
+        self.ax.clear()
         self.canvas.draw()
 
 if __name__ == "__main__":
