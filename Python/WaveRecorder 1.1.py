@@ -157,30 +157,17 @@ class AudioRecorderApp:
         if file_path:
             os.rename(self.temp_file_path, file_path)
             self.message_label.configure(text=f"Recording saved as {file_path}")
-            # Rimuovi i file temporanei
             self.clean_temp_files()
-            threading.Timer(3.0, lambda: self.message_label.configure(text="")).start()
 
     def clean_temp_files(self):
-        """Elimina i file temporanei."""
         if os.path.exists(self.temp_file_path):
             os.remove(self.temp_file_path)
         if os.path.exists(self.trim_file_path):
             os.remove(self.trim_file_path)
 
     def preview_recording(self):
-        file_to_play = None
-        if os.path.exists(self.trim_file_path) and os.path.getsize(self.trim_file_path) > 0:
-            # Riproduci la parte NON selezionata
-            data, _ = sf.read(self.temp_file_path, dtype='float32')
-            non_selected_audio = np.concatenate((data[:self.trim_start], data[self.trim_end:]))
-            sd.stop()
-            sd.play(non_selected_audio, samplerate=self.sample_rate)
-            self.message_label.configure(text="Playing non-selected audio...")
-            return
-        elif os.path.exists(self.temp_file_path) and os.path.getsize(self.temp_file_path) > 0:
-            file_to_play = self.temp_file_path
-        else:
+        file_to_play = self.trim_file_path if os.path.exists(self.trim_file_path) else self.temp_file_path
+        if not os.path.exists(file_to_play):
             self.message_label.configure(text="No recording to preview. Please record audio first.")
             return
 
@@ -205,7 +192,6 @@ class AudioRecorderApp:
         self.ax.clear()
         self.ax.plot(time_axis, audio_array, color='orange')
 
-        # Controlla se trim_start e trim_end sono definiti prima di aggiungere l'area evidenziata
         if self.trim_start is not None and self.trim_end is not None:
             self.ax.axvspan(self.trim_start / self.sample_rate, self.trim_end / self.sample_rate, color='red', alpha=0.3)
 
@@ -226,6 +212,7 @@ class AudioRecorderApp:
         self.trim_end = int(xmax * self.sample_rate)
         self.message_label.configure(text=f"Selected range: {xmin:.2f}s to {xmax:.2f}s")
         self.trim_confirm_button.pack(pady=5, anchor="w")
+        self.plot_waveform()
 
     def confirm_trim(self):
         if self.trim_start is not None and self.trim_end is not None:
@@ -236,8 +223,8 @@ class AudioRecorderApp:
 
             trimmed_audio = audio_array[self.trim_start:self.trim_end]
             sf.write(self.trim_file_path, trimmed_audio, self.sample_rate)
+
             self.message_label.configure(text="Trim confirmed. Preview updated.")
-            self.audio_data = [audio_array]  # Mantieni l'audio completo per il grafico
             self.plot_waveform()
             self.trim_confirm_button.pack_forget()
 
