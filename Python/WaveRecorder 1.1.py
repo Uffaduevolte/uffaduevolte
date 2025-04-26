@@ -13,24 +13,17 @@ ctk.set_default_color_theme("blue")
 
 class AudioRecorderApp:
     def __init__(self, root):
-        ...
-        self.frames_to_discard = 4410  # Numero di frame da scartare (circa 0.1 secondi con sample rate 44100 Hz)
-        ...
-
-    def audio_callback(self, indata, frames, time, status):
-        if status:
-            print(status)
-        if self.recording:
-            # Scarta i frame iniziali solo durante le prime iterazioni
-            if self.frames_to_discard > 0:
-                if self.frames_to_discard >= len(indata):
-                    self.frames_to_discard -= len(indata)
-                    return
-                else:
-                    indata = indata[self.frames_to_discard:]
-                    self.frames_to_discard = 0
-            
-            self.audio_data.append(indata.copy())
+        self.root = root
+        self.root.title("Audio Recorder")
+        self.root.geometry("600x400")
+        self.root.iconbitmap(os.path.join(os.path.dirname(__file__), "io.ico"))
+        
+        self.recording = False
+        self.audio_data = []
+        self.sample_rate = 44100
+        self.dynamic_gain = 1.0  # Fattore di guadagno dinamico
+        
+        self.create_widgets()
         
     def create_widgets(self):
         padding = 15
@@ -67,6 +60,7 @@ class AudioRecorderApp:
         if not self.recording:
             self.recording = True
             self.audio_data = []
+            self.dynamic_gain = 1.0  # Reset del guadagno dinamico
             threading.Thread(target=self.record_audio).start()
             self.message_label.configure(text="Recording started.")
             
@@ -79,12 +73,18 @@ class AudioRecorderApp:
         if status:
             print(status)
         if self.recording:
-            # Append the raw audio data without any normalization or amplification
-            indata = indata.copy()
-            if len(self.audio_data) == 0:
-                # Discard the first few frames to avoid low volume issue at the start
-                indata = indata[10:]
-            self.audio_data.append(indata)
+            # Calcola il picco massimo nel frame corrente
+            max_amplitude = np.max(np.abs(indata))
+            
+            # Aggiorna il guadagno dinamico per compensare il volume basso
+            if max_amplitude > 0:
+                self.dynamic_gain = max(1.0, self.dynamic_gain / max_amplitude)
+            
+            # Applica il guadagno dinamico ai dati audio
+            normalized_data = indata * self.dynamic_gain
+            
+            # Aggiungi i dati normalizzati all'array audio
+            self.audio_data.append(normalized_data.copy())
             
     def stop_recording(self):
         if self.recording:
