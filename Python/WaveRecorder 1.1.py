@@ -166,18 +166,32 @@ class AudioRecorderApp:
             os.remove(self.trim_file_path)
 
     def preview_recording(self):
-        file_to_play = self.trim_file_path if os.path.exists(self.trim_file_path) else self.temp_file_path
-        if not os.path.exists(file_to_play):
-            self.message_label.configure(text="No recording to preview. Please record audio first.")
-            return
-
-        try:
-            data, samplerate = sf.read(file_to_play, dtype='float32')
-            sd.stop()
-            sd.play(data, samplerate=samplerate)
-            self.message_label.configure(text="Playing audio...")
-        except Exception as e:
-            self.message_label.configure(text=f"Error during playback: {str(e)}")
+        if self.trim_start is not None and self.trim_end is not None:
+            try:
+                # Leggi l'audio originale
+                data, _ = sf.read(self.temp_file_path, dtype='float32')
+                
+                # Combina le parti non selezionate
+                non_selected_audio = np.concatenate((data[:self.trim_start], data[self.trim_end:]))
+                
+                # Riproduci l'audio non selezionato
+                sd.stop()
+                sd.play(non_selected_audio, samplerate=self.sample_rate)
+                self.message_label.configure(text="Playing non-selected audio...")
+            except Exception as e:
+                self.message_label.configure(text=f"Error during playback: {str(e)}")
+        else:
+            # Riproduci l'audio originale se non c'è una selezione
+            if os.path.exists(self.temp_file_path):
+                try:
+                    data, samplerate = sf.read(self.temp_file_path, dtype='float32')
+                    sd.stop()
+                    sd.play(data, samplerate=samplerate)
+                    self.message_label.configure(text="Playing original audio...")
+                except Exception as e:
+                    self.message_label.configure(text=f"Error during playback: {str(e)}")
+            else:
+                self.message_label.configure(text="No recording to preview. Please record audio first.")
 
     def plot_waveform(self):
         if not self.audio_data or len(self.audio_data[0]) == 0:
