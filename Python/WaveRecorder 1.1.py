@@ -235,13 +235,24 @@ class AudioRecorderApp:
                 self.message_label.configure(text="Invalid trim range.")
                 return
 
-            trimmed_audio = audio_array[self.trim_start:self.trim_end]
-            sf.write(self.trim_file_path, trimmed_audio, self.sample_rate)
-
-            self.message_label.configure(text="Trim confirmed. Preview updated.")
+            # Creare un nuovo array audio escludendo la parte selezionata
+            new_audio = np.concatenate((audio_array[:self.trim_start], audio_array[self.trim_end:]))
+            
+            # Salvare il nuovo audio tagliato nel file temporaneo
+            sf.write(self.temp_file_path, new_audio, self.sample_rate)
+            
+            # Aggiornare self.audio_data con il nuovo audio
+            self.audio_data = [new_audio]
+            
+            # Resettare la selezione
+            self.trim_start = None
+            self.trim_end = None
+            
+            # Aggiornare il grafico
             self.plot_waveform()
-            self.trim_confirm_button.pack_forget()
 
+            self.message_label.configure(text="Trim confirmed and waveform updated.")
+            self.trim_confirm_button.pack_forget()
 
 if __name__ == "__main__":
     app = ctk.CTk()
