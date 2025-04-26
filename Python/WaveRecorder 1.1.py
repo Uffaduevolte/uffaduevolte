@@ -85,8 +85,7 @@ class AudioRecorderApp:
             self.ax,
             self.on_select,
             'horizontal',
-            useblit=True,
-            span_stays=True  # Mantiene la selezione visibile
+            useblit=True  # Aggiornamento grafico rapido durante la selezione
         )
 
     def toggle_recording(self):
