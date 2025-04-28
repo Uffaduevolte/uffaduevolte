@@ -25,17 +25,21 @@ def onselect(eclick, erelease):
     selected_range = (ymin, ymax)
     print(f"Range selezionato: {selected_range}")
 
-    # Abilita il tasto Adjust solo dopo la selezione
-    adjust_button.configure(state="normal")
-    message_label.configure(text="Range di ampiezza selezionato. Ora puoi cliccare su Adjust.")
+    # Abilita il tasto Adjust solo se è stata fatta una selezione valida
+    if selected_range is not None:
+        adjust_button.configure(state="normal")  # Abilita il pulsante Adjust
+        message_label.configure(text="Range di ampiezza selezionato. Ora puoi cliccare su Adjust.")
+    else:
+        adjust_button.configure(state="disabled")  # Disabilita il pulsante Adjust
 
 def enable_selector(ax):
     """Abilita il selettore per scegliere il range di ampiezza nel grafico."""
-    selector = RectangleSelector(
-        ax, onselect, drawtype='box',
-        props=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)
+    global rectangle_selector
+    rectangle_selector = RectangleSelector(
+        ax, onselect,
+        interactive=True,  # Consente l'interazione con il rettangolo
+        props=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)  # Stile del rettangolo
     )
-    return selector
 
 def detect_bpm(waveform, framerate):
     """Rileva automaticamente il BPM calcolando gli intervalli tra i picchi."""
@@ -78,14 +82,15 @@ def select_file():
             # Visualizza la forma d'onda
             visualize_waveform(selected_file)
 
-            # Abilita il tasto Preview
-            preview_button.configure(state="normal")  # Questo abilita il pulsante Preview
-
-            # Disabilita il tasto Adjust finché non si seleziona un range
+            # Disabilita il tasto Adjust fino alla selezione
             adjust_button.configure(state="disabled")
 
-            # Mostra il messaggio per guidare l'utente
+            # Abilita il tasto preview
+            preview_button.configure(state="normal")
+
+            # Mostra il messaggio sotto il grafico
             message_label.configure(text="Seleziona un range di ampiezza nel grafico per proseguire.")
+            message_label.pack(side="bottom", pady=(10, 5))
         except Exception as e:
             print(f"Errore durante il caricamento del file: {e}")
 
@@ -171,8 +176,16 @@ def update_markers():
                 ax.axvline(x=t, color='red', linestyle='--', alpha=0.7)
 
         # Ridisegna il grafico
-        ax.legend()  # Aggiorna la legenda
+        ax.legend(loc="upper right")  # Posiziona la legenda in alto a destra
         canvas.draw()
+
+        # Mostra e abilita il tasto Adjust
+        adjust_button.pack(pady=10)
+        adjust_button.configure(state="normal")
+
+        # Abilita il tasto preview
+        preview_button.configure(state="normal")
+        
     except Exception as e:
         print(f"Errore durante l'aggiornamento dei marker: {e}")
 
@@ -361,9 +374,9 @@ adjust_button.pack_forget()  # Nascondi finché non è caricato un file
 graph_frame = ctk.CTkFrame(main_frame, fg_color="#2E2E2E")
 graph_frame.pack(side="left", fill="both", expand=True)
 
-# Messaggio per guidare l'utente
-message_label = ctk.CTkLabel(control_frame, text="Seleziona un range di ampiezza nel grafico.", text_color="orange")
-message_label.pack(pady=(10, 5))
+# Messaggio per guidare l'utente sotto il grafico
+message_label = ctk.CTkLabel(graph_frame, text="", text_color="orange")
+message_label.pack(side="bottom", pady=(10, 5))  # Posizionato sotto il grafico
 
 # Nascondi il tasto Adjust inizialmente
 adjust_button.configure(state="disabled")
