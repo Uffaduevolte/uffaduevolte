@@ -191,7 +191,6 @@ def update_markers():
         print(f"Errore durante l'aggiornamento dei marker: {e}")
 
 def adjust_audio():
-    """Rielabora il segnale audio e aggiorna la linea verde nel grafico."""
     global adjusted_audio
     if not selected_file or selected_range is None:
         print("File non selezionato o range non definito.")
@@ -225,9 +224,10 @@ def adjust_audio():
         # Trova i picchi nel segnale audio
         peaks, _ = find_peaks(waveform, height=np.max(waveform) * 0.5, distance=framerate * interval / 2)
 
-        # Filtra i picchi rilevanti in base al range selezionato
+        # Filtra i picchi rilevanti
         ymin, ymax = selected_range
-        peaks = peaks[(waveform[peaks] < ymin) | (waveform[peaks] > ymax)]  # Solo picchi fuori dal range
+        peaks = peaks[(peaks >= start_frame) & (peaks <= end_frame) & 
+                      ((waveform[peaks] < ymin) | (waveform[peaks] > ymax))]
 
         # Elabora i segmenti tra i marker
         adjusted_segments = []  # Per accumulare i segmenti rielaborati
@@ -310,7 +310,13 @@ def visualize_waveform(file_path):
         ax.set_ylabel("Ampiezza (valori normalizzati)", color='orange')  # Unità di misura
         ax.tick_params(axis='x', colors='orange')
         ax.tick_params(axis='y', colors='orange')
-        ax.legend(loc="upper right")  # Posiziona la legenda in alto a destra
+        # Sposta la legenda sopra il grafico
+        ax.legend(
+            loc="upper center",  # Posizione sopra il grafico
+            bbox_to_anchor=(0.5, -0.1),  # Coordina fuori dal grafico
+            ncol=3,  # Numero di colonne
+            fontsize="small"  # Dimensione del testo
+        )
     except ValueError:
         pass  # Ignora errori se il campo BPM non è un numero valido
 
