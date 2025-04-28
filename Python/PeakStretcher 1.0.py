@@ -255,7 +255,7 @@ def adjust_audio():
         ax = canvas.figure.axes[0]
         adjusted_time = np.linspace(0, duration, num=len(adjusted_audio))
         ax.plot(adjusted_time, adjusted_audio, color='green', alpha=0.6, label="Forma d'onda rielaborata")
-        ax.legend()
+        # ax.legend()
         canvas.draw()
         print("Adjust completato.")
     except Exception as e:
