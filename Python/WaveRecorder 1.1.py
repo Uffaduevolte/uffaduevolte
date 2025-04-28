@@ -160,11 +160,15 @@ class AudioRecorderApp:
                     self.message_label.configure(text="Invalid selection for preview.")
                     return
 
+                # Gestione delle diverse selezioni
                 if self.trim_start == 0:
+                    # Suona solo la parte destra dopo il taglio
                     preview_audio = full_audio[self.trim_end:]
                 elif self.trim_end >= len(full_audio):
+                    # Suona solo la parte sinistra prima del taglio
                     preview_audio = full_audio[:self.trim_start]
                 else:
+                    # Concatenazione delle due parti (sinistra + destra)
                     preview_audio = np.concatenate((full_audio[:self.trim_start], full_audio[self.trim_end:]))
 
                 if preview_audio.shape[0] == 0:
