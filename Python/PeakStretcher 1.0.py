@@ -7,12 +7,34 @@ import sounddevice as sd
 from scipy.signal import find_peaks
 from scipy.interpolate import interp1d
 from scipy.signal import resample
+from matplotlib.widgets import RectangleSelector
 
 # Variabili globali
 canvas = None
 selected_file = None
 update_delay = None  # Timer per gestire ritardi nell'aggiornamento
 adjusted_audio = None  # Contiene il segnale audio rielaborato
+selected_range = None  # Variabile globale per memorizzare il range selezionato
+
+def onselect(eclick, erelease):
+    """Gestisce la selezione dell'area nel grafico."""
+    global selected_range
+    ymin = min(eclick.ydata, erelease.ydata)
+    ymax = max(eclick.ydata, erelease.ydata)
+    selected_range = (ymin, ymax)
+    print(f"Range selezionato: {selected_range}")
+
+    # Abilita il tasto Adjust solo dopo la selezione
+    adjust_button.configure(state="normal")
+    message_label.configure(text="Range di ampiezza selezionato. Ora puoi cliccare su Adjust.")
+
+def enable_selector(ax):
+    """Abilita il selettore per scegliere il range di ampiezza nel grafico."""
+    selector = RectangleSelector(
+        ax, onselect, drawtype='box',
+        rectprops=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)
+    )
+    return selector
 
 def detect_bpm(waveform, framerate):
     """Rileva automaticamente il BPM calcolando gli intervalli tra i picchi."""
@@ -172,6 +194,11 @@ def adjust_audio():
         # Trova i picchi nel segnale audio
         peaks, _ = find_peaks(waveform, height=np.max(waveform) * 0.5, distance=framerate * interval / 2)
 
+        # Filtra i picchi rilevanti in base al range selezionato
+        if selected_range is not None:
+            ymin, ymax = selected_range
+            peaks = peaks[(waveform[peaks] < ymin) | (waveform[peaks] > ymax)]
+            
         # Associa ogni marker al picco più vicino
         adjusted_segments = []  # Per accumulare i segmenti rielaborati
         previous_marker = 0  # Partenza iniziale del primo segmento
@@ -236,11 +263,6 @@ def visualize_waveform(file_path):
     time = np.linspace(0, duration, num=len(waveform))
     ax.plot(time, waveform, color='orange', label="Forma d'onda originale")
 
-    # Aggiungere linea per l'onda rielaborata se disponibile
-    if adjusted_audio is not None:
-        adjusted_time = np.linspace(0, duration, num=len(adjusted_audio))
-        ax.plot(adjusted_time, adjusted_audio, color='green', alpha=0.6, label="Forma d'onda rielaborata")
-
     # Aggiungere linee verticali per i BPM
     try:
         bpm = int(bpm_entry.get())
@@ -270,6 +292,9 @@ def visualize_waveform(file_path):
     canvas = FigureCanvasTkAgg(fig, master=graph_frame)
     canvas.get_tk_widget().pack(fill='both', expand=True)
     canvas.draw()
+
+    # Abilita il selettore per scegliere il range
+    enable_selector(ax)
 
 # Associa l'aggiornamento del BPM all'esecuzione di adjust_audio
 def delayed_update_bpm(*args):
@@ -326,6 +351,13 @@ adjust_button.pack_forget()  # Nascondi finché non è caricato un file
 # Frame per il grafico
 graph_frame = ctk.CTkFrame(main_frame, fg_color="#2E2E2E")
 graph_frame.pack(side="left", fill="both", expand=True)
+
+# Messaggio per guidare l'utente
+message_label = ctk.CTkLabel(control_frame, text="Seleziona un range di ampiezza nel grafico.", text_color="orange")
+message_label.pack(pady=(10, 5))
+
+# Nascondi il tasto Adjust inizialmente
+adjust_button.configure(state="disabled")
 
 # Avvio applicazione
 root.mainloop()
