@@ -14,15 +14,49 @@ selected_file = None
 update_delay = None  # Timer per gestire ritardi nell'aggiornamento
 adjusted_audio = None  # Contiene il segnale audio rielaborato
 
+def detect_bpm(waveform, framerate):
+    """Rileva automaticamente il BPM calcolando gli intervalli tra i picchi."""
+    try:
+        # Trova i picchi nel segnale audio
+        peaks, _ = find_peaks(waveform, height=np.max(waveform) * 0.5, distance=framerate * 0.2)
+        
+        # Calcola gli intervalli temporali tra i picchi
+        if len(peaks) > 1:
+            intervals = np.diff(peaks) / framerate  # Intervalli in secondi
+            avg_interval = np.mean(intervals)  # Intervallo medio
+            bpm = int(60 / avg_interval)  # Converte l'intervallo medio in BPM
+            return bpm
+        else:
+            return 120  # Valore di default se non ci sono abbastanza picchi
+    except Exception as e:
+        print(f"Errore durante il calcolo del BPM: {e}")
+        return 120  # Valore di default in caso di errore
+
 def select_file():
-    """Apri finestra di dialogo per selezionare un file .wav."""
+    """Apri finestra di dialogo per selezionare un file .wav e rileva automaticamente il BPM."""
     global selected_file, adjusted_audio
     selected_file = ctk.filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     adjusted_audio = None  # Reset dell'audio rielaborato
     if selected_file:
-        visualize_waveform(selected_file)
-        preview_button.configure(state="normal")  # Abilita il tasto Preview
-        adjust_button.pack(pady=10)  # Mostra il pulsante Adjust
+        try:
+            # Carica il file e calcola il BPM
+            with wave.open(selected_file, 'r') as wav_file:
+                n_frames = wav_file.getnframes()
+                framerate = wav_file.getframerate()
+                frames = wav_file.readframes(n_frames)
+                waveform = np.frombuffer(frames, dtype=np.int16)
+
+            # Rileva il BPM e imposta il valore nella casella BPM
+            detected_bpm = detect_bpm(waveform, framerate)
+            bpm_entry.delete(0, ctk.END)
+            bpm_entry.insert(0, str(detected_bpm))
+
+            # Visualizza la forma d'onda
+            visualize_waveform(selected_file)
+            preview_button.configure(state="normal")  # Abilita il tasto Preview
+            adjust_button.pack(pady=10)  # Mostra il pulsante Adjust
+        except Exception as e:
+            print(f"Errore durante il caricamento del file: {e}")
 
 def preview_file():
     """Riproduce il file originale o rielaborato."""
@@ -39,13 +73,36 @@ def preview_file():
             waveform = np.frombuffer(frames, dtype=np.int16)
             sd.play(waveform, samplerate=framerate)
 
+def update_markers():
+    """Aggiorna solo i marker verticali nel grafico quando cambiano i BPM."""
+    if not selected_file:
+        return
+
+    try:
+        # Rileggi il file originale per calcolare i marker
+        with wave.open(selected_file, 'r') as wav_file:
+            n_frames = wav_file.getnframes()
+            framerate = wav_file.getframerate()
+            duration = n_frames / framerate
+
+        # Calcola le posizioni dei marker in base ai BPM
+        bpm = int(bpm_entry.get())
+        interval = 60 / bpm  # Intervallo tra i marker in secondi
+        marker_positions = np.arange(0, duration, interval)
+
+        # Aggiorna il grafico per mostrare solo i marker
+        update_waveform_with_markers(marker_positions)  # Funzione che aggiorna i marker nel grafico
+    except Exception as e:
+        print(f"Errore durante l'aggiornamento dei marker: {e}")
+
 def adjust_audio():
-    """Comprime e allunga l'audio per adattare i picchi ai marker BPM mantenendo continuità."""
+    """Rielabora il segnale audio e aggiorna la linea verde nel grafico."""
     global adjusted_audio
     if not selected_file:
         return
 
     try:
+        # Ricarica il segnale originale dal file selezionato
         with wave.open(selected_file, 'r') as wav_file:
             n_frames = wav_file.getnframes()
             framerate = wav_file.getframerate()
@@ -58,39 +115,45 @@ def adjust_audio():
         duration = len(waveform) / framerate
         marker_positions = np.array(np.arange(0, duration, interval) * framerate, dtype=int)
 
+        # Escludi il primo marker (a 0 secondi) e lavora solo sui marker successivi
+        if len(marker_positions) > 1:
+            marker_positions = marker_positions[1:]  # Escludi il primo marker
+
         # Trova i picchi nel segnale audio
         peaks, _ = find_peaks(waveform, height=np.max(waveform) * 0.5, distance=framerate * interval / 2)
 
-        # Segmentazione e manipolazione temporale
+        # Associa ogni marker al picco più vicino
         adjusted_segments = []  # Per accumulare i segmenti rielaborati
-        for i in range(len(marker_positions) - 1):
-            start_marker = marker_positions[i]
-            end_marker = marker_positions[i + 1] if i + 1 < len(marker_positions) else len(waveform)
+        previous_marker = 0  # Partenza iniziale del primo segmento
+        for i in range(len(marker_positions)):
+            current_marker = marker_positions[i]
+            next_marker = marker_positions[i + 1] if i + 1 < len(marker_positions) else len(waveform)
 
-            # Trova il picco più vicino al marker corrente
-            segment_peaks = peaks[(peaks >= start_marker) & (peaks < end_marker)]
+            # Trova i picchi nel range tra il marker precedente e quello successivo
+            segment_peaks = peaks[(peaks >= previous_marker) & (peaks < next_marker)]
             if len(segment_peaks) > 0:
-                closest_peak = segment_peaks[np.argmin(np.abs(segment_peaks - start_marker))]
+                closest_peak = segment_peaks[np.argmin(np.abs(segment_peaks - current_marker))]
             else:
-                closest_peak = start_marker
+                closest_peak = current_marker  # Se non ci sono picchi, usa il marker stesso
 
-            # Comprimere la parte prima del picco verso il marker
-            pre_peak = waveform[start_marker:closest_peak]
-            pre_peak_resampled = resample(pre_peak, max(1, len(pre_peak) // 2))  # Comprime
+            # Sposta il picco esattamente sul marker corrente
+            offset = current_marker - closest_peak
+            shifted_waveform = np.roll(waveform[previous_marker:next_marker], offset)
 
-            # Allungare la parte dopo il picco verso il marker successivo
-            post_peak = waveform[closest_peak:end_marker]
-            post_peak_resampled = resample(post_peak, len(post_peak) * 2)  # Allunga
+            # Comprime o allunga i segmenti per adattarli alla durata tra i marker
+            target_length = next_marker - previous_marker
+            resampled_segment = resample(shifted_waveform, target_length)
 
-            # Combina i segmenti rielaborati
-            adjusted_segments.append(pre_peak_resampled)
-            adjusted_segments.append(post_peak_resampled)
+            # Accumula il segmento rielaborato
+            adjusted_segments.append(resampled_segment)
+            previous_marker = next_marker
 
         # Ricostruisce il segnale completo
         adjusted_audio = np.concatenate(adjusted_segments).astype(np.int16)
 
         # Aggiorna il grafico con la nuova forma d'onda
-        visualize_waveform(selected_file)
+        visualize_waveform_with_adjusted_data(adjusted_audio)  # Funzione per aggiornare la linea verde
+        print("Adjust completato.")
     except Exception as e:
         print(f"Errore durante l'operazione di Adjust: {e}")
 
@@ -148,13 +211,14 @@ def visualize_waveform(file_path):
     canvas.get_tk_widget().pack(fill='both', expand=True)
     canvas.draw()
 
+# Associa l'aggiornamento del BPM all'esecuzione di adjust_audio
 def delayed_update_bpm(*args):
-    """Gestisce l'aggiornamento del grafico con un ritardo per permettere all'utente di completare l'inserimento."""
+    """Gestisce l'aggiornamento del grafico e rilancia Adjust quando cambia il BPM."""
     global update_delay
     if update_delay is not None:
         root.after_cancel(update_delay)  # Cancella eventuali timer in corso
-    update_delay = root.after(300, update_bpm)  # Attendi 300ms prima di aggiornare
-
+    update_delay = root.after(300, adjust_audio)  # Rilancia adjust_audio con il nuovo BPM
+    
 def update_bpm():
     """Aggiorna le linee verticali del grafico quando cambia il BPM."""
     if selected_file:
@@ -191,9 +255,12 @@ bpm_label.pack(side="left", padx=(0, 5))
 bpm_entry = ctk.CTkEntry(bpm_frame, width=100)
 bpm_entry.insert(0, "100")  # Valore predefinito
 bpm_entry.pack(side="right")
-bpm_entry.bind("<KeyRelease>", delayed_update_bpm)  # Usa un ritardo per aggiornare il grafico al cambiare del valore BPM
+# Associa l'aggiornamento dei marker al cambio del controllo BPM
+bpm_entry.bind("<KeyRelease>", lambda event: update_markers())
 
-adjust_button = ctk.CTkButton(control_frame, text="Adjust", command=adjust_audio)  # Aggiunto comando Adjust
+# Associa l'esecuzione di adjust_audio al pulsante "Adjust"
+adjust_button = ctk.CTkButton(control_frame, text="Adjust", command=adjust_audio)
+adjust_button.pack(pady=10)
 adjust_button.pack_forget()  # Nascondi finché non è caricato un file
 
 # Frame per il grafico
