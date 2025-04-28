@@ -21,7 +21,6 @@ class AudioRecorderApp:
         self.root.iconbitmap(os.path.join(os.path.dirname(__file__), "io.ico"))
 
         self.recording = False
-        self.audio_data = []
         self.sample_rate = 44100
 
         self.temp_dir = "C:/Temp"
@@ -35,7 +34,6 @@ class AudioRecorderApp:
 
         self.create_widgets()
 
-        # Pulizia file temporanei alla chiusura
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def create_widgets(self):
@@ -104,7 +102,7 @@ class AudioRecorderApp:
 
     def start_recording(self):
         self.recording = True
-        self.audio_data.clear()
+        self.audio_data = []
         self.clear_plot()
         threading.Thread(target=self.record_audio).start()
         self.message_label.configure(text="Recording started.")
@@ -128,8 +126,8 @@ class AudioRecorderApp:
             self.plot_waveform()
 
     def save_temp_file(self):
-        if self.audio_data:
-            audio_array = np.concatenate(self.audio_data)
+        if hasattr(self, 'audio_data') and self.audio_data:
+            audio_array = np.concatenate(self.audio_data, axis=0)
             sf.write(self.temp_file_path, audio_array, self.sample_rate)
 
     def save_recording(self):
@@ -152,57 +150,46 @@ class AudioRecorderApp:
             self.message_label.configure(text="No recording to preview. Please record audio first.")
             return
         try:
-            # Sempre leggere il file fresco
-            full_audio, samplerate = sf.read(self.temp_file_path, dtype='float32')
+            audio_array, samplerate = sf.read(self.temp_file_path, dtype='float32')
+            if audio_array.ndim == 2 and audio_array.shape[1] == 1:
+                audio_array = audio_array[:, 0]
 
-            if self.trim_start is not None and self.trim_end is not None:
-                if self.trim_start >= self.trim_end or self.trim_start >= len(full_audio):
-                    self.message_label.configure(text="Invalid selection for preview.")
-                    return
-
-                # Gestione delle diverse selezioni
+            if self.trim_start is not None and self.trim_end is not None and self.trim_end > self.trim_start:
                 if self.trim_start == 0:
-                    # Suona solo la parte destra dopo il taglio
-                    preview_audio = full_audio[self.trim_end:]
-                elif self.trim_end >= len(full_audio):
-                    # Suona solo la parte sinistra prima del taglio
-                    preview_audio = full_audio[:self.trim_start]
+                    preview_audio = audio_array[self.trim_end:]
+                elif self.trim_end >= len(audio_array):
+                    preview_audio = audio_array[:self.trim_start]
                 else:
-                    # Concatenazione delle due parti (sinistra + destra)
-                    preview_audio = np.concatenate((full_audio[:self.trim_start], full_audio[self.trim_end:]))
-
-                if preview_audio.shape[0] == 0:
-                    self.message_label.configure(text="Selection leaves no audio to play.")
-                    return
-
-                sd.stop()
-                sd.play(preview_audio.copy(), samplerate=samplerate)
-                self.message_label.configure(text="Playing trimmed preview...")
-
+                    preview_audio = np.concatenate((audio_array[:self.trim_start], audio_array[self.trim_end:]))
             else:
-                # Nessuna selezione → suona tutto
-                sd.stop()
-                sd.play(full_audio.copy(), samplerate=samplerate)
-                self.message_label.configure(text="Playing full audio...")
+                preview_audio = audio_array
+
+            sd.stop()
+            sd.play(preview_audio.copy(), samplerate=samplerate)
+            self.message_label.configure(text="Playing preview...")
 
         except Exception as e:
             self.message_label.configure(text=f"Error during playback: {str(e)}")
 
     def plot_waveform(self):
-        if not self.audio_data or len(self.audio_data[0]) == 0:
-            self.ax.clear()
-            self.ax.set_title('No audio data to display', color='orange')
-            self.canvas.draw()
-            return
-
-        audio_array = np.concatenate(self.audio_data)
-        time_axis = np.linspace(0, len(audio_array) / self.sample_rate, num=len(audio_array))
-
         self.ax.clear()
-        self.ax.plot(time_axis, audio_array, color='orange')
+        if not os.path.exists(self.temp_file_path):
+            self.ax.set_title('No audio data to display', color='orange')
+        else:
+            audio_array, _ = sf.read(self.temp_file_path, dtype='float32')
+            if audio_array.ndim == 2 and audio_array.shape[1] == 1:
+                audio_array = audio_array[:, 0]
 
-        if self.trim_start is not None and self.trim_end is not None:
-            self.ax.axvspan(self.trim_start / self.sample_rate, self.trim_end / self.sample_rate, color='red', alpha=0.3)
+            time_axis = np.linspace(0, len(audio_array) / self.sample_rate, num=len(audio_array))
+            self.ax.plot(time_axis, audio_array, color='orange')
+
+            if (self.trim_start is not None) and (self.trim_end is not None) and (self.trim_end > self.trim_start):
+                self.ax.axvspan(
+                    self.trim_start / self.sample_rate,
+                    self.trim_end / self.sample_rate,
+                    color='red',
+                    alpha=0.3
+                )
 
         self.ax.set_facecolor('#2E2E2E')
         self.ax.set_title('Waveform', color='orange')
@@ -225,18 +212,30 @@ class AudioRecorderApp:
 
     def confirm_trim(self):
         if self.trim_start is not None and self.trim_end is not None:
-            audio_array = np.concatenate(self.audio_data)
+            audio_array, _ = sf.read(self.temp_file_path, dtype='float32')
+
+            if audio_array.ndim == 2 and audio_array.shape[1] == 1:
+                audio_array = audio_array[:, 0]
+
             if self.trim_start >= self.trim_end or self.trim_start >= len(audio_array):
                 self.message_label.configure(text="Invalid trim range.")
                 return
 
-            new_audio = np.concatenate((audio_array[:self.trim_start], audio_array[self.trim_end:]))
+            if self.trim_start == 0:
+                new_audio = audio_array[self.trim_end:]
+            elif self.trim_end >= len(audio_array):
+                new_audio = audio_array[:self.trim_start]
+            else:
+                new_audio = np.concatenate((audio_array[:self.trim_start], audio_array[self.trim_end:]))
+
+            if new_audio.shape[0] == 0:
+                self.message_label.configure(text="Nothing left after trim.")
+                return
+
+            if os.path.exists(self.temp_file_path):
+                os.remove(self.temp_file_path)
 
             sf.write(self.temp_file_path, new_audio, self.sample_rate)
-
-            self.audio_data.clear()
-            trimmed_data, _ = sf.read(self.temp_file_path, dtype='float32')
-            self.audio_data.append(trimmed_data.reshape(-1, 1))
 
             self.trim_start = None
             self.trim_end = None
