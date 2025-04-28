@@ -15,6 +15,7 @@ selected_file = None
 update_delay = None  # Timer per gestire ritardi nell'aggiornamento
 adjusted_audio = None  # Contiene il segnale audio rielaborato
 selected_range = None  # Variabile globale per memorizzare il range selezionato
+rectangle_selector = None  # Variabile globale per il selettore
 
 def onselect(eclick, erelease):
     """Gestisce la selezione dell'area nel grafico."""
@@ -32,7 +33,7 @@ def enable_selector(ax):
     """Abilita il selettore per scegliere il range di ampiezza nel grafico."""
     selector = RectangleSelector(
         ax, onselect, drawtype='box',
-        rectprops=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)
+        props=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)
     )
     return selector
 
@@ -59,6 +60,7 @@ def select_file():
     global selected_file, adjusted_audio
     selected_file = ctk.filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     adjusted_audio = None  # Reset dell'audio rielaborato
+
     if selected_file:
         try:
             # Carica il file e calcola il BPM
@@ -75,8 +77,15 @@ def select_file():
 
             # Visualizza la forma d'onda
             visualize_waveform(selected_file)
-            preview_button.configure(state="normal")  # Abilita il tasto Preview
-            adjust_button.pack(pady=10)  # Mostra il pulsante Adjust
+
+            # Abilita il tasto Preview
+            preview_button.configure(state="normal")  # Questo abilita il pulsante Preview
+
+            # Disabilita il tasto Adjust finché non si seleziona un range
+            adjust_button.configure(state="disabled")
+
+            # Mostra il messaggio per guidare l'utente
+            message_label.configure(text="Seleziona un range di ampiezza nel grafico per proseguire.")
         except Exception as e:
             print(f"Errore durante il caricamento del file: {e}")
 
@@ -280,7 +289,7 @@ def visualize_waveform(file_path):
         ax.set_ylabel("Ampiezza (valori normalizzati)", color='orange')  # Unità di misura
         ax.tick_params(axis='x', colors='orange')
         ax.tick_params(axis='y', colors='orange')
-        ax.legend()
+        ax.legend(loc="upper right")  # Posiziona la legenda in alto a destra
     except ValueError:
         pass  # Ignora errori se il campo BPM non è un numero valido
 
