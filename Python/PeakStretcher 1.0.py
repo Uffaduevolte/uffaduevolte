@@ -190,7 +190,33 @@ def update_markers():
     except Exception as e:
         print(f"Errore durante l'aggiornamento dei marker: {e}")
 
+def crossfade_segments(seg1, seg2, fade_length=100):
+    """Applica un crossfade tra due segmenti audio."""
+    if len(seg1) < fade_length or len(seg2) < fade_length:
+        raise ValueError("I segmenti devono essere più lunghi del fade_length")
+
+    # Converti a float64 per evitare problemi con il tipo di dato
+    seg1 = seg1.astype(np.float64)
+    seg2 = seg2.astype(np.float64)
+
+    # Crea una transizione graduale (fade-in e fade-out)
+    fade_in = np.linspace(0, 1, fade_length)
+    fade_out = np.linspace(1, 0, fade_length)
+
+    # Applica il fade-out al segmento precedente
+    seg1[-fade_length:] = seg1[-fade_length:] * fade_out
+
+    # Applica il fade-in al segmento successivo
+    seg2[:fade_length] = seg2[:fade_length] * fade_in
+
+    # Combina i due segmenti con un crossfade
+    combined = np.concatenate((seg1[:-fade_length], seg1[-fade_length:] + seg2[:fade_length], seg2[fade_length:]))
+
+    # Converti di nuovo a int16 prima di restituire
+    return combined.astype(np.int16)
+
 def adjust_audio():
+    """Rielabora il segnale audio e aggiorna la linea verde nel grafico."""
     global adjusted_audio
     if not selected_file or selected_range is None:
         print("File non selezionato o range non definito.")
@@ -251,19 +277,49 @@ def adjust_audio():
             target_length = next_marker - previous_marker
             resampled_segment = resample(shifted_waveform, target_length)
 
-            # Accumula il segmento rielaborato
-            adjusted_segments.append(resampled_segment)
+            # Se ci sono segmenti precedenti, applica il crossfade
+            if adjusted_segments:
+                adjusted_segments[-1] = crossfade_segments(adjusted_segments[-1], resampled_segment)
+            else:
+                adjusted_segments.append(resampled_segment)
+
             previous_marker = next_marker
 
         # Ricostruisce il segnale completo
-        adjusted_audio = np.concatenate(adjusted_segments).astype(np.int16)
+        adjusted_audio = np.concatenate(adjusted_segments).astype(np.float64)
 
-        # Aggiorna il grafico con la nuova forma d'onda
-        visualize_waveform(selected_file)  # Mostra la forma d'onda originale
+        # Applica normalizzazione
+        adjusted_audio = adjusted_audio / np.max(np.abs(adjusted_audio)) * 32767
+
+        # Applica un fade-out alla fine del segnale
+        fade_out_length = int(0.05 * framerate)  # 50 ms di fade-out
+        fade_out = np.linspace(1, 0, fade_out_length)
+        adjusted_audio[-fade_out_length:] *= fade_out
+
+        # Converti a int16
+        adjusted_audio = adjusted_audio.astype(np.int16)
+
+        # Aggiorna il grafico
         ax = canvas.figure.axes[0]
+        ax.cla()  # Cancella l'asse corrente
+
+        # Mostra la forma d'onda originale
+        duration = n_frames / framerate
+        time = np.linspace(0, duration, num=n_frames)
+        ax.plot(time, np.frombuffer(frames, dtype=np.int16), color='orange', label="Forma d'onda originale")
+
+        # Mostra la forma d'onda rielaborata
         adjusted_time = np.linspace(0, duration, num=len(adjusted_audio))
         ax.plot(adjusted_time, adjusted_audio, color='green', alpha=0.6, label="Forma d'onda rielaborata")
-        ax.legend(loc="upper right")
+
+        # Configura la legenda fuori dal grafico
+        ax.legend(
+            loc="upper center", 
+            bbox_to_anchor=(0.5, -0.1), 
+            ncol=3, 
+            fontsize="small"
+        )
+
         canvas.draw()
         print("Adjust completato.")
     except Exception as e:
