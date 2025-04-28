@@ -264,6 +264,7 @@ def adjust_audio():
             # Trova i picchi nel range temporale tra il marker precedente e quello successivo
             segment_peaks = relevant_peaks[(relevant_peaks >= previous_marker) & (relevant_peaks < next_marker)]
             if len(segment_peaks) > 0:
+                # Trova il picco più vicino al marker corrente (in termini assoluti)
                 closest_peak = segment_peaks[np.argmin(np.abs(segment_peaks - current_marker))]
             else:
                 closest_peak = current_marker  # Se non ci sono picchi, usa il marker stesso
