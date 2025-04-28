@@ -150,23 +150,38 @@ class AudioRecorderApp:
             self.message_label.configure(text="No recording to preview. Please record audio first.")
             return
         try:
+            # Leggi il file audio
             audio_array, samplerate = sf.read(self.temp_file_path, dtype='float32')
             if audio_array.ndim == 2 and audio_array.shape[1] == 1:
                 audio_array = audio_array[:, 0]
 
-            if self.trim_start is not None and self.trim_end is not None and self.trim_end > self.trim_start:
-                if self.trim_start == 0:
-                    preview_audio = audio_array[self.trim_end:]
-                elif self.trim_end >= len(audio_array):
-                    preview_audio = audio_array[:self.trim_start]
-                else:
-                    preview_audio = np.concatenate((audio_array[:self.trim_start], audio_array[self.trim_end:]))
-            else:
-                preview_audio = audio_array
+            # Validazione: Controlla se trim_start o trim_end sono None
+            if self.trim_start is None or self.trim_end is None:
+                self.message_label.configure(text="Trim range not selected. Please select a valid range.")
+                return
 
+            # Validazione: Assicurati che trim_start e trim_end siano validi
+            self.trim_start = max(0, min(self.trim_start, len(audio_array)))
+            self.trim_end = max(0, min(self.trim_end, len(audio_array)))
+
+            # Determina la parte audio da riprodurre
+            if self.trim_start == 0:
+                preview_audio = audio_array[self.trim_end:]  # Solo la parte dopo il taglio
+            elif self.trim_end >= len(audio_array):
+                preview_audio = audio_array[:self.trim_start]  # Solo la parte prima del taglio
+            else:
+                preview_audio = np.concatenate((audio_array[:self.trim_start], audio_array[self.trim_end:]))  # Parti valide
+
+            # Salva il file temporaneo per la preview
+            preview_file_path = os.path.join(self.temp_dir, "temp_preview.wav")
+            sf.write(preview_file_path, preview_audio, samplerate)
+
+            # Riproduci il file temporaneo
             sd.stop()
             sd.play(preview_audio.copy(), samplerate=samplerate)
             self.message_label.configure(text="Playing preview...")
+
+            print(f"Trim Start: {self.trim_start}, Trim End: {self.trim_end}, Audio Length: {len(audio_array)}")    
 
         except Exception as e:
             self.message_label.configure(text=f"Error during playback: {str(e)}")
@@ -204,8 +219,8 @@ class AudioRecorderApp:
         self.canvas.draw()
 
     def on_select(self, xmin, xmax):
-        self.trim_start = int(xmin * self.sample_rate)
-        self.trim_end = int(xmax * self.sample_rate)
+        self.trim_start = max(0, int(xmin * self.sample_rate))  # Imposta un minimo di 0
+        self.trim_end = max(0, int(xmax * self.sample_rate))    # Imposta un minimo di 0
         self.message_label.configure(text=f"Selected range: {xmin:.2f}s to {xmax:.2f}s")
         self.trim_confirm_button.pack(pady=5, anchor="w")
         self.plot_waveform()
@@ -216,6 +231,10 @@ class AudioRecorderApp:
 
             if audio_array.ndim == 2 and audio_array.shape[1] == 1:
                 audio_array = audio_array[:, 0]
+
+            # Validazione: Assicurati che trim_start e trim_end siano validi
+            self.trim_start = max(0, min(self.trim_start, len(audio_array)))
+            self.trim_end = max(0, min(self.trim_end, len(audio_array)))
 
             if self.trim_start >= self.trim_end or self.trim_start >= len(audio_array):
                 self.message_label.configure(text="Invalid trim range.")
@@ -232,9 +251,7 @@ class AudioRecorderApp:
                 self.message_label.configure(text="Nothing left after trim.")
                 return
 
-            if os.path.exists(self.temp_file_path):
-                os.remove(self.temp_file_path)
-
+            # Sostituisci il file originale con quello tagliato
             sf.write(self.temp_file_path, new_audio, self.sample_rate)
 
             self.trim_start = None
