@@ -243,17 +243,16 @@ def adjust_audio():
         duration = len(waveform) / framerate
         marker_positions = np.array(np.arange(0, duration, interval) * framerate, dtype=int)
 
-        # Escludi il primo marker (a 0 secondi) e lavora solo sui marker successivi
-        if len(marker_positions) > 1:
-            marker_positions = marker_positions[1:]  # Escludi il primo marker
-
         # Trova i picchi nel segnale audio
         peaks, _ = find_peaks(waveform, height=np.max(waveform) * 0.5, distance=framerate * interval / 2)
 
         # Filtra i picchi rilevanti
         ymin, ymax = selected_range
-        peaks = peaks[(peaks >= start_frame) & (peaks <= end_frame) & 
-                      ((waveform[peaks] < ymin) | (waveform[peaks] > ymax))]
+        relevant_peaks = peaks[(peaks >= start_frame) & (peaks <= end_frame) & 
+                               ((waveform[peaks] < ymin) | (waveform[peaks] > ymax))]
+
+        # Crea una mappa dei picchi non rilevanti
+        non_relevant_peaks = set(peaks) - set(relevant_peaks)
 
         # Elabora i segmenti tra i marker
         adjusted_segments = []  # Per accumulare i segmenti rielaborati
@@ -263,13 +262,13 @@ def adjust_audio():
             next_marker = marker_positions[i + 1] if i + 1 < len(marker_positions) else len(waveform)
 
             # Trova i picchi nel range temporale tra il marker precedente e quello successivo
-            segment_peaks = peaks[(peaks >= previous_marker) & (peaks < next_marker)]
+            segment_peaks = relevant_peaks[(relevant_peaks >= previous_marker) & (relevant_peaks < next_marker)]
             if len(segment_peaks) > 0:
                 closest_peak = segment_peaks[np.argmin(np.abs(segment_peaks - current_marker))]
             else:
                 closest_peak = current_marker  # Se non ci sono picchi, usa il marker stesso
 
-            # Sposta il picco esattamente sul marker corrente
+            # Sposta il picco rilevante esattamente sul marker corrente
             offset = current_marker - closest_peak
             shifted_waveform = np.roll(waveform[previous_marker:next_marker], offset)
 
@@ -277,12 +276,14 @@ def adjust_audio():
             target_length = next_marker - previous_marker
             resampled_segment = resample(shifted_waveform, target_length)
 
-            # Se ci sono segmenti precedenti, applica il crossfade
-            if adjusted_segments:
-                adjusted_segments[-1] = crossfade_segments(adjusted_segments[-1], resampled_segment)
-            else:
-                adjusted_segments.append(resampled_segment)
+            # Mantieni i picchi non rilevanti nella loro posizione originale
+            for non_rel_peak in non_relevant_peaks:
+                if previous_marker <= non_rel_peak < next_marker:
+                    original_position = non_rel_peak - previous_marker
+                    resampled_segment[original_position] = waveform[non_rel_peak]
 
+            # Accumula il segmento rielaborato
+            adjusted_segments.append(resampled_segment)
             previous_marker = next_marker
 
         # Ricostruisce il segnale completo
@@ -308,9 +309,13 @@ def adjust_audio():
         time = np.linspace(0, duration, num=n_frames)
         ax.plot(time, np.frombuffer(frames, dtype=np.int16), color='orange', label="Forma d'onda originale")
 
-        # Mostra la forma d'onda rielaborata
+        # Mostra la forma d'onda rielaborata (solo UNA verde)
         adjusted_time = np.linspace(0, duration, num=len(adjusted_audio))
         ax.plot(adjusted_time, adjusted_audio, color='green', alpha=0.6, label="Forma d'onda rielaborata")
+
+        # Ridisegna i marker
+        for t in marker_positions / framerate:  # Converti in secondi
+            ax.axvline(x=t, color='red', linestyle='--', alpha=0.7, label="Marker")
 
         # Configura la legenda fuori dal grafico
         ax.legend(
