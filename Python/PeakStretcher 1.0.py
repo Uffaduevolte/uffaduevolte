@@ -62,20 +62,54 @@ def preview_file():
     """Riproduce il file originale o rielaborato."""
     if adjusted_audio is not None:
         # Riproduce l'audio rielaborato se disponibile
+        print("Riproducendo audio rielaborato...")
         with wave.open(selected_file, 'r') as wav_file:
             framerate = wav_file.getframerate()
         sd.play(adjusted_audio, samplerate=framerate)
     elif selected_file:
         # Riproduce il file originale
+        print("Riproducendo audio originale...")
         with wave.open(selected_file, 'r') as wav_file:
             framerate = wav_file.getframerate()
             frames = wav_file.readframes(wav_file.getnframes())
             waveform = np.frombuffer(frames, dtype=np.int16)
             sd.play(waveform, samplerate=framerate)
 
+def update_waveform_with_markers(marker_positions):
+    """Aggiorna il grafico per mostrare i marker verticali."""
+    try:
+        # Cancella i marker esistenti
+        plt.clf()  # Pulisce la figura corrente
+        with wave.open(selected_file, 'r') as wav_file:
+            n_frames = wav_file.getnframes()
+            framerate = wav_file.getframerate()
+            frames = wav_file.readframes(n_frames)
+            waveform = np.frombuffer(frames, dtype=np.int16)
+            duration = n_frames / framerate
+            time = np.linspace(0, duration, num=n_frames)
+
+        # Disegna la forma d'onda
+        plt.plot(time, waveform, label="Waveform", color="orange")
+
+        # Aggiungi i marker verticali
+        for marker in marker_positions:
+            plt.axvline(x=marker, color='blue', linestyle='--', label="Marker")
+
+        # Configura il grafico
+        plt.xlabel("Time (s)")
+        plt.ylabel("Amplitude")
+        plt.title("Waveform with BPM Markers")
+        plt.legend()
+        plt.grid()
+
+        # Mostra il grafico
+        plt.draw()
+    except Exception as e:
+        print(f"Errore durante l'aggiornamento dei marker: {e}")
+
 def update_markers():
     """Aggiorna solo i marker verticali nel grafico quando cambiano i BPM."""
-    if not selected_file:
+    if not selected_file or not canvas:
         return
 
     try:
@@ -90,8 +124,24 @@ def update_markers():
         interval = 60 / bpm  # Intervallo tra i marker in secondi
         marker_positions = np.arange(0, duration, interval)
 
-        # Aggiorna il grafico per mostrare solo i marker
-        update_waveform_with_markers(marker_positions)  # Funzione che aggiorna i marker nel grafico
+        # Ottieni l'asse corrente dal canvas
+        ax = canvas.figure.axes[0]
+
+        # Rimuovi i vecchi marker
+        for line in ax.get_lines():
+            if line.get_linestyle() == '--':  # Identifica le linee tratteggiate dei marker
+                line.remove()
+
+        # Aggiungi i nuovi marker
+        for i, t in enumerate(marker_positions):
+            if i == 0:  # Aggiungi "Marker" solo per il primo
+                ax.axvline(x=t, color='red', linestyle='--', alpha=0.7, label="Marker")
+            else:
+                ax.axvline(x=t, color='red', linestyle='--', alpha=0.7)
+
+        # Ridisegna il grafico
+        ax.legend()  # Aggiorna la legenda
+        canvas.draw()
     except Exception as e:
         print(f"Errore durante l'aggiornamento dei marker: {e}")
 
@@ -152,7 +202,12 @@ def adjust_audio():
         adjusted_audio = np.concatenate(adjusted_segments).astype(np.int16)
 
         # Aggiorna il grafico con la nuova forma d'onda
-        visualize_waveform_with_adjusted_data(adjusted_audio)  # Funzione per aggiornare la linea verde
+        visualize_waveform(selected_file)  # Mostra la forma d'onda originale
+        ax = canvas.figure.axes[0]
+        adjusted_time = np.linspace(0, duration, num=len(adjusted_audio))
+        ax.plot(adjusted_time, adjusted_audio, color='green', alpha=0.6, label="Forma d'onda rielaborata")
+        ax.legend()
+        canvas.draw()
         print("Adjust completato.")
     except Exception as e:
         print(f"Errore durante l'operazione di Adjust: {e}")
@@ -190,8 +245,13 @@ def visualize_waveform(file_path):
     try:
         bpm = int(bpm_entry.get())
         interval = 60 / bpm  # Intervallo in secondi
+        first_marker = True  # Per aggiungere la label una sola volta
         for t in np.arange(0, duration, interval):
-            ax.axvline(x=t, color='red', linestyle='--', alpha=0.7)
+            if first_marker:
+                ax.axvline(x=t, color='red', linestyle='--', alpha=0.7, label="Marker")
+                first_marker = False
+            else:
+                ax.axvline(x=t, color='red', linestyle='--', alpha=0.7)
 
         ax.set_title("Forma d'onda con marker BPM", color='orange')
         ax.set_xlabel("Tempo (s)", color='orange')
