@@ -267,7 +267,15 @@ def adjust_audio():
                 # Trova il picco più vicino al marker corrente (in termini assoluti)
                 closest_peak = segment_peaks[np.argmin(np.abs(segment_peaks - current_marker))]
             else:
-                closest_peak = current_marker  # Se non ci sono picchi, usa il marker stesso
+                # Se non ci sono picchi, usa un'interpolazione morbida per evitare clic
+                interp_waveform = np.linspace(
+                    waveform[previous_marker],
+                    waveform[next_marker - 1],
+                    next_marker - previous_marker
+                )
+                adjusted_segments.append(interp_waveform)
+                previous_marker = next_marker
+                continue
 
             # Sposta il picco rilevante esattamente sul marker corrente
             offset = current_marker - closest_peak
