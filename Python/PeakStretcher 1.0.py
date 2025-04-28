@@ -1,5 +1,4 @@
-import tkinter as tk
-from tkinter import filedialog
+import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
@@ -7,12 +6,13 @@ import wave
 
 def select_file():
     """Apri finestra di dialogo per selezionare un file .wav."""
-    file_path = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
+    file_path = ctk.filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if file_path:
         visualize_waveform(file_path)
 
 def visualize_waveform(file_path):
     """Carica il file .wav e rappresenta la forma d'onda con divisioni di tempo basate sui BPM."""
+    global canvas  # Per gestire il grafico dinamicamente
     # Leggere i dati dal file .wav
     with wave.open(file_path, 'r') as wav_file:
         n_frames = wav_file.getnframes()
@@ -41,28 +41,46 @@ def visualize_waveform(file_path):
         ax.set_ylabel("Ampiezza")
         ax.legend()
     except ValueError:
-        tk.messagebox.showerror("Errore", "Inserisci un valore BPM valido!")
+        ctk.messagebox.showerror("Errore", "Inserisci un valore BPM valido!")
 
-    # Visualizzare il grafico in Tkinter
+    # Rimuovere il grafico precedente se esiste
+    if canvas:
+        canvas.get_tk_widget().destroy()
+
+    # Visualizzare il grafico in customtkinter
     canvas = FigureCanvasTkAgg(fig, master=frame)
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack()
     canvas.draw()
 
-# Creare l'interfaccia grafica con Tkinter
-root = tk.Tk()
+def update_bpm():
+    """Aggiorna il grafico quando il BPM cambia."""
+    if selected_file:
+        visualize_waveform(selected_file)
+
+# Creare l'interfaccia grafica con customtkinter
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("blue")
+
+root = ctk.CTk()
 root.title("Visualizzatore di Forma d'Onda")
 
-frame = tk.Frame(root)
-frame.pack()
+frame = ctk.CTkFrame(root)
+frame.pack(padx=20, pady=20)
 
-select_button = tk.Button(frame, text="Seleziona file WAV", command=select_file)
-select_button.pack()
+select_button = ctk.CTkButton(frame, text="Seleziona file WAV", command=select_file)
+select_button.pack(pady=(0, 10))
 
-bpm_label = tk.Label(frame, text="BPM:")
-bpm_label.pack(side=tk.LEFT)
+bpm_label = ctk.CTkLabel(frame, text="BPM:")
+bpm_label.pack(side="left", padx=(0, 10))
 
-bpm_entry = tk.Entry(frame)
-bpm_entry.pack(side=tk.LEFT)
+bpm_entry = ctk.CTkEntry(frame, width=100)
+bpm_entry.insert(0, "100")  # Valore di default
+bpm_entry.pack(side="left", padx=(0, 10))
+
+bpm_entry.bind("<KeyRelease>", lambda event: update_bpm())  # Aggiorna il grafico quando il BPM cambia
+
+canvas = None  # Per gestire il grafico
+selected_file = None  # Percorso del file selezionato
 
 root.mainloop()
