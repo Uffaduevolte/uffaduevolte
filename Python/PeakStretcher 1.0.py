@@ -95,7 +95,7 @@ ctk.set_default_color_theme("blue")
 
 # Creare la finestra principale
 root = ctk.CTk()
-root.title("Visualizzatore di Forma d'Onda")
+root.title("Waveform and BPM Marker")
 root.geometry("1000x600")
 
 main_frame = ctk.CTkFrame(root, fg_color="#2E2E2E")
@@ -105,7 +105,7 @@ main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 control_frame = ctk.CTkFrame(main_frame, fg_color="#2E2E2E")
 control_frame.pack(side="left", fill="y", padx=20)
 
-select_button = ctk.CTkButton(control_frame, text="Seleziona file WAV", command=select_file)
+select_button = ctk.CTkButton(control_frame, text="Select file WAV", command=select_file)
 select_button.pack(pady=(20, 10))
 
 preview_button = ctk.CTkButton(control_frame, text="Preview", command=preview_file, state="disabled")
