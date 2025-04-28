@@ -26,11 +26,12 @@ def onselect(eclick, erelease):
     print(f"Range selezionato: {selected_range}")
 
     # Abilita il tasto Adjust solo se è stata fatta una selezione valida
-    if selected_range is not None:
+    if ymin != ymax:  # Controlla che ci sia effettivamente un range selezionato
         adjust_button.configure(state="normal")  # Abilita il pulsante Adjust
         message_label.configure(text="Range di ampiezza selezionato. Ora puoi cliccare su Adjust.")
     else:
         adjust_button.configure(state="disabled")  # Disabilita il pulsante Adjust
+        message_label.configure(text="Seleziona un range valido per abilitare Adjust.")
 
 def enable_selector(ax):
     """Abilita il selettore per scegliere il range di ampiezza nel grafico."""
@@ -192,7 +193,8 @@ def update_markers():
 def adjust_audio():
     """Rielabora il segnale audio e aggiorna la linea verde nel grafico."""
     global adjusted_audio
-    if not selected_file:
+    if not selected_file or selected_range is None:
+        print("File non selezionato o range non definito.")
         return
 
     try:
@@ -202,6 +204,13 @@ def adjust_audio():
             framerate = wav_file.getframerate()
             frames = wav_file.readframes(n_frames)
             waveform = np.frombuffer(frames, dtype=np.int16)
+
+        # Considera solo i frame nell'arco temporale selezionato
+        start_time = selected_range[0]  # Inizio del range selezionato (in secondi)
+        end_time = selected_range[1]    # Fine del range selezionato (in secondi)
+        start_frame = int(start_time * framerate)  # Converti in frame
+        end_frame = int(end_time * framerate)      # Converti in frame
+        waveform = waveform[start_frame:end_frame]  # Isola la parte di audio selezionata
 
         # Trova i marker BPM
         bpm = int(bpm_entry.get())
@@ -217,18 +226,17 @@ def adjust_audio():
         peaks, _ = find_peaks(waveform, height=np.max(waveform) * 0.5, distance=framerate * interval / 2)
 
         # Filtra i picchi rilevanti in base al range selezionato
-        if selected_range is not None:
-            ymin, ymax = selected_range
-            peaks = peaks[(waveform[peaks] < ymin) | (waveform[peaks] > ymax)]
-            
-        # Associa ogni marker al picco più vicino
+        ymin, ymax = selected_range
+        peaks = peaks[(waveform[peaks] < ymin) | (waveform[peaks] > ymax)]  # Solo picchi fuori dal range
+
+        # Elabora i segmenti tra i marker
         adjusted_segments = []  # Per accumulare i segmenti rielaborati
         previous_marker = 0  # Partenza iniziale del primo segmento
         for i in range(len(marker_positions)):
             current_marker = marker_positions[i]
             next_marker = marker_positions[i + 1] if i + 1 < len(marker_positions) else len(waveform)
 
-            # Trova i picchi nel range tra il marker precedente e quello successivo
+            # Trova i picchi nel range temporale tra il marker precedente e quello successivo
             segment_peaks = peaks[(peaks >= previous_marker) & (peaks < next_marker)]
             if len(segment_peaks) > 0:
                 closest_peak = segment_peaks[np.argmin(np.abs(segment_peaks - current_marker))]
@@ -255,7 +263,7 @@ def adjust_audio():
         ax = canvas.figure.axes[0]
         adjusted_time = np.linspace(0, duration, num=len(adjusted_audio))
         ax.plot(adjusted_time, adjusted_audio, color='green', alpha=0.6, label="Forma d'onda rielaborata")
-        # ax.legend()
+        ax.legend(loc="upper right")
         canvas.draw()
         print("Adjust completato.")
     except Exception as e:
