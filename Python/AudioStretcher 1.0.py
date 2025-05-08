@@ -30,14 +30,36 @@ def onselect(eclick, erelease):
 
 def add_marker(event):
     """Aggiunge un marker cliccando nell'area selezionata."""
-    global markers, is_processed
+    global markers
     if selected_range and selected_range[0] <= event.xdata <= selected_range[1]:
         markers.append(event.xdata)
         markers.sort()
         print(f"Marker aggiunto: {event.xdata}")
-        if is_processed:  # Salva lo stato solo se il file è stato elaborato
-            push_undo_state()
-        update_graph()
+        update_graph()  # Aggiorna il grafico mantenendo la selezione visibile
+
+def drag_marker(event):
+    """Gestisce lo spostamento di un marker tramite drag & drop."""
+    global markers, selected_range
+    if event.button == 1 and event.xdata:  # Verifica che il pulsante sinistro del mouse sia premuto
+        tolerance = 0.1  # Tolleranza per selezionare il marker più vicino
+        closest_marker = None
+
+        # Trova il marker più vicino al punto cliccato
+        for marker in markers:
+            if abs(marker - event.xdata) < tolerance:
+                closest_marker = marker
+                break
+
+        if closest_marker is not None:
+            # Limita il movimento del marker all'interno della selezione
+            min_limit = selected_range[0] if markers.index(closest_marker) == 0 else markers[markers.index(closest_marker) - 1]
+            max_limit = selected_range[1] if markers.index(closest_marker) == len(markers) - 1 else markers[markers.index(closest_marker) + 1]
+            new_position = max(min(event.xdata, max_limit), min_limit)
+
+            # Aggiorna la posizione del marker
+            markers[markers.index(closest_marker)] = new_position
+            print(f"Marker spostato: {closest_marker} -> {new_position}")
+            update_graph()  # Aggiorna il grafico per riflettere la nuova posizione del marker
 
 def remove_marker(event):
     """Rimuove un marker con doppio clic."""
