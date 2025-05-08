@@ -120,11 +120,20 @@ def select_file():
         canvas.get_tk_widget().pack_forget()  # Nascondi il grafico se non c'è un file
 
 def add_marker(event):
-    """Aggiunge un marker cliccando sul grafico."""
+    """Aggiunge o rimuove un marker cliccando sul grafico."""
     global markers
+    if event.dblclick:  # Se l'utente fa doppio clic, rimuovi il marker
+        if len(markers) > 0:
+            print(f"Marker rimosso: {markers[0]}")
+            markers.clear()
+            update_graph()
+        return
+
+    if len(markers) > 0:
+        print("Esiste già un marker. Cancella il marker esistente per crearne uno nuovo.")
+        return  # Non consentire di aggiungere altri marker
     if event.xdata:
         markers.append(event.xdata)
-        markers.sort()
         print(f"Marker aggiunto: {event.xdata}")
         update_graph()
 
@@ -132,20 +141,19 @@ def drag_marker(event):
     """Gestisce lo spostamento di un marker tramite drag & drop."""
     global markers
     if event.button == 1 and event.xdata:  # Verifica che il pulsante sinistro del mouse sia premuto
-        tolerance = 0.1  # Tolleranza per selezionare il marker più vicino
+        tolerance = 12 / canvas.figure.get_size_inches()[0] / canvas.figure.dpi  # Tolleranza in unità del grafico
         closest_marker = None
 
-        # Trova il marker più vicino al punto cliccato
+        # Trova il marker più vicino al punto cliccato considerando la tolleranza
         for marker in markers:
             if abs(marker - event.xdata) < tolerance:
                 closest_marker = marker
                 break
 
         if closest_marker is not None:
-            # Limita il movimento del marker tra le linee BPM adiacenti
-            idx = markers.index(closest_marker)
-            min_limit = beat_positions[0] if idx == 0 else beat_positions[idx - 1]
-            max_limit = beat_positions[-1] if idx == len(markers) - 1 else beat_positions[idx + 1]
+            # Limita il movimento del marker tra l'inizio e la fine del grafico
+            min_limit = 0  # Limite minimo (inizio della forma d'onda)
+            max_limit = canvas.figure.axes[0].get_xlim()[1]  # Limite massimo (fine della forma d'onda)
             new_position = max(min(event.xdata, max_limit), min_limit)
 
             # Aggiorna la posizione del marker
