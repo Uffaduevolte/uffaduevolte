@@ -16,6 +16,7 @@ markers = []  # Posizioni dei marker
 undo_stack = []  # Stack per undo
 redo_stack = []  # Stack per redo
 rectangle_selector = None
+is_playing = False # per tenere traccia dello stato del tasto Preview
 
 def onselect(eclick, erelease):
     """Gestisce la selezione di un'area sul grafico."""
@@ -139,19 +140,30 @@ def select_file():
         update_graph()
 
 def preview_file():
-    """Riproduce l'audio (originale o modificato)."""
-    if adjusted_audio is not None:
-        print("Riproducendo audio rielaborato...")
-        with wave.open(selected_file, 'r') as wav_file:
-            framerate = wav_file.getframerate()
-        sd.play(adjusted_audio, samplerate=framerate)
-    elif selected_file:
-        print("Riproducendo audio originale...")
-        with wave.open(selected_file, 'r') as wav_file:
-            framerate = wav_file.getframerate()
-            frames = wav_file.readframes(wav_file.getnframes())
-            waveform = np.frombuffer(frames, dtype=np.int16)
-            sd.play(waveform, samplerate=framerate)
+    """Riproduce o interrompe l'audio (originale o modificato)."""
+    global is_playing  # Accedi alla variabile globale
+    if is_playing:
+        # Se è in riproduzione, ferma l'audio
+        sd.stop()
+        print("Riproduzione interrotta.")
+        preview_button.configure(text="Preview")  # Modifica la caption del pulsante
+        is_playing = False
+    else:
+        # Se non è in riproduzione, avvia l'audio
+        if adjusted_audio is not None:
+            print("Riproducendo audio rielaborato...")
+            with wave.open(selected_file, 'r') as wav_file:
+                framerate = wav_file.getframerate()
+            sd.play(adjusted_audio, samplerate=framerate)
+        elif selected_file:
+            print("Riproducendo audio originale...")
+            with wave.open(selected_file, 'r') as wav_file:
+                framerate = wav_file.getframerate()
+                frames = wav_file.readframes(wav_file.getnframes())
+                waveform = np.frombuffer(frames, dtype=np.int16)
+                sd.play(waveform, samplerate=framerate)
+        preview_button.configure(text="Stop")  # Modifica la caption del pulsante
+        is_playing = True
 
 # Configurazione CustomTkinter
 ctk.set_appearance_mode("dark")
