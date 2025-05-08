@@ -22,7 +22,7 @@ def update_bpm():
         if 30 <= new_bpm <= 180:
             bpm = new_bpm
             print(f"BPM aggiornato a: {bpm}")
-            update_graph()
+            update_graph()  # Aggiorna il grafico con le nuove barre rosse
         else:
             print("Il valore di BPM deve essere compreso tra 30 e 180.")
     except ValueError:
@@ -34,11 +34,48 @@ def calculate_beat_positions(framerate, duration, bpm):
     num_beats = int(duration / beat_interval)
     return [i * beat_interval for i in range(num_beats)]
 
+def update_graph_visibility():
+    """Aggiorna la visibilità del grafico in base al caricamento del file."""
+    if selected_file:
+        canvas.get_tk_widget().pack(fill='both', expand=True)  # Mostra il grafico
+    else:
+        canvas.get_tk_widget().pack_forget()  # Nascondi il grafico
+        
 def update_graph():
     """Aggiorna il grafico con i marker e le linee BPM."""
     global beat_positions
     if not selected_file:
         return
+
+    with wave.open(selected_file, 'r') as wav_file:
+        n_frames = wav_file.getnframes()
+        framerate = wav_file.getframerate()
+        frames = wav_file.readframes(n_frames)
+        waveform = np.frombuffer(frames, dtype=np.int16)
+        time = np.linspace(0, n_frames / framerate, num=n_frames)
+
+    duration = len(time) / framerate  # Durata totale dell'audio in secondi
+    beat_positions = calculate_beat_positions(framerate, duration, bpm)
+
+    ax = canvas.figure.axes[0]
+    ax.clear()
+    ax.set_facecolor('#2b2b2b')  # Sfondo grigio scuro
+    ax.spines['top'].set_color('#2b2b2b')  # Cornice grigio scuro
+    ax.spines['right'].set_color('#2b2b2b')
+    ax.spines['left'].set_color('#2b2b2b')
+    ax.spines['bottom'].set_color('#2b2b2b')
+    ax.plot(time, waveform, color='orange', label="Forma d'onda originale")
+
+    # Disegna le linee verticali rosse per ogni battito
+    for beat in beat_positions:
+        ax.axvline(x=beat, color='red', linestyle='--', label='BPM Marker' if beat == beat_positions[0] else None)
+
+    # Disegna i marker
+    for marker in markers:
+        ax.axvline(x=marker, color='white', linestyle='--')
+
+    ax.legend()
+    canvas.draw()
 
     with wave.open(selected_file, 'r') as wav_file:
         n_frames = wav_file.getnframes()
@@ -75,7 +112,8 @@ def select_file():
     global selected_file
     selected_file = ctk.filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if selected_file:
-        update_graph()  # Aggiorna il grafico dopo aver caricato un file
+        update_graph()  # Aggiorna il grafico
+        update_graph_visibility()  # Mostra il grafico
         preview_button.pack(pady=10)  # Mostra il tasto Preview
         bpm_frame.pack(pady=10)  # Mostra il controllo BPM
 
