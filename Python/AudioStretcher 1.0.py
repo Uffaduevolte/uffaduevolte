@@ -34,7 +34,7 @@ def add_marker(event):
         markers.append(event.xdata)
         markers.sort()
         print(f"Marker aggiunto: {event.xdata}")
-        push_undo_state()
+        push_undo_state()  # Salva lo stato solo dopo una modifica
         update_graph()
 
 def remove_marker(event):
@@ -45,7 +45,7 @@ def remove_marker(event):
         if abs(marker - event.xdata) < tolerance:
             markers.remove(marker)
             print(f"Marker rimosso: {marker}")
-            push_undo_state()
+            push_undo_state()  # Salva lo stato solo dopo una modifica
             update_graph()
             return
 
@@ -81,7 +81,7 @@ def drag_marker(event):
             max_limit = selected_range[1] if markers.index(closest_marker) == len(markers) - 1 else markers[markers.index(closest_marker) + 1]
             new_position = max(min(event.xdata, max_limit), min_limit)
             markers[markers.index(closest_marker)] = new_position
-            push_undo_state()
+            push_undo_state()  # Salva lo stato solo dopo una modifica
             update_graph()
 
 def update_graph():
@@ -140,7 +140,7 @@ def redo():
         update_button_visibility()  # Aggiorna la visibilità dei tasti
 
 def update_button_visibility():
-    """Aggiorna la visibilità dei tasti Undo, Redo e Preview."""
+    """Aggiorna la visibilità dei tasti Undo e Redo."""
     if undo_stack:
         undo_button.pack(pady=10)  # Mostra il tasto Undo
     else:
@@ -170,8 +170,7 @@ def select_file():
     global selected_file
     selected_file = ctk.filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if selected_file:
-        push_undo_state()
-        update_graph()
+        update_graph()  # Aggiorna il grafico senza salvare uno stato undo
         update_preview_visibility()  # Aggiorna la visibilità del tasto Preview
         update_graph_visibility()  # Aggiorna la visibilità del grafico
 
