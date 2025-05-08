@@ -10,26 +10,33 @@ canvas = None
 selected_file = None
 adjusted_audio = None
 markers = []  # Posizioni dei marker
-undo_stack = []  # Stack per undo
-redo_stack = []  # Stack per redo
 is_playing = False  # Stato del tasto Preview (True = Riproduzione attiva)
 bpm = 120  # BPM iniziale (120 BPM di default)
+beat_positions = []  # Posizioni calcolate delle linee BPM
 
-def update_bpm(new_bpm):
+def update_bpm():
     """Aggiorna il valore di BPM e ridisegna il grafico."""
-    global bpm
-    bpm = int(new_bpm)
-    print(f"BPM aggiornato a: {bpm}")
-    update_graph()
+    global bpm, beat_positions
+    try:
+        new_bpm = int(bpm_entry.get())
+        if 30 <= new_bpm <= 180:
+            bpm = new_bpm
+            print(f"BPM aggiornato a: {bpm}")
+            update_graph()
+        else:
+            print("Il valore di BPM deve essere compreso tra 30 e 180.")
+    except ValueError:
+        print("Inserisci un valore numerico valido per il BPM.")
 
 def calculate_beat_positions(framerate, duration, bpm):
-    """Calcola le posizioni dei battiti in base al BPM."""
+    """Calcola le posizioni delle linee BPM in base al BPM."""
     beat_interval = 60 / bpm  # Intervallo tra i battiti in secondi
     num_beats = int(duration / beat_interval)
     return [i * beat_interval for i in range(num_beats)]
 
 def update_graph():
-    """Aggiorna il grafico con i battiti calcolati (linee verticali rosse)."""
+    """Aggiorna il grafico con i marker e le linee BPM."""
+    global beat_positions
     if not selected_file:
         return
 
@@ -56,6 +63,10 @@ def update_graph():
     for beat in beat_positions:
         ax.axvline(x=beat, color='red', linestyle='--', label='BPM Marker' if beat == beat_positions[0] else None)
 
+    # Disegna i marker
+    for marker in markers:
+        ax.axvline(x=marker, color='white', linestyle='--')
+
     ax.legend()
     canvas.draw()
 
@@ -65,6 +76,42 @@ def select_file():
     selected_file = ctk.filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if selected_file:
         update_graph()  # Aggiorna il grafico dopo aver caricato un file
+        preview_button.pack(pady=10)  # Mostra il tasto Preview
+        bpm_frame.pack(pady=10)  # Mostra il controllo BPM
+
+def add_marker(event):
+    """Aggiunge un marker cliccando sul grafico."""
+    global markers
+    if event.xdata:
+        markers.append(event.xdata)
+        markers.sort()
+        print(f"Marker aggiunto: {event.xdata}")
+        update_graph()
+
+def drag_marker(event):
+    """Gestisce lo spostamento di un marker tramite drag & drop."""
+    global markers
+    if event.button == 1 and event.xdata:  # Verifica che il pulsante sinistro del mouse sia premuto
+        tolerance = 0.1  # Tolleranza per selezionare il marker più vicino
+        closest_marker = None
+
+        # Trova il marker più vicino al punto cliccato
+        for marker in markers:
+            if abs(marker - event.xdata) < tolerance:
+                closest_marker = marker
+                break
+
+        if closest_marker is not None:
+            # Limita il movimento del marker tra le linee BPM adiacenti
+            idx = markers.index(closest_marker)
+            min_limit = beat_positions[0] if idx == 0 else beat_positions[idx - 1]
+            max_limit = beat_positions[-1] if idx == len(markers) - 1 else beat_positions[idx + 1]
+            new_position = max(min(event.xdata, max_limit), min_limit)
+
+            # Aggiorna la posizione del marker
+            markers[markers.index(closest_marker)] = new_position
+            print(f"Marker spostato: {closest_marker} -> {new_position}")
+            update_graph()
 
 def preview_file():
     """Riproduce o interrompe l'audio (originale o modificato)."""
@@ -77,20 +124,14 @@ def preview_file():
         is_playing = False
     else:
         # Se non è in riproduzione, avvia l'audio
-        if adjusted_audio is not None:
-            print("Riproducendo audio rielaborato...")
-            with wave.open(selected_file, 'r') as wav_file:
-                framerate = wav_file.getframerate()
-            sd.play(adjusted_audio, samplerate=framerate)
-        elif selected_file:
-            print("Riproducendo audio originale...")
+        if selected_file:
             with wave.open(selected_file, 'r') as wav_file:
                 framerate = wav_file.getframerate()
                 frames = wav_file.readframes(wav_file.getnframes())
                 waveform = np.frombuffer(frames, dtype=np.int16)
                 sd.play(waveform, samplerate=framerate)
-        preview_button.configure(text="Stop")  # Modifica la caption del pulsante
-        is_playing = True
+            preview_button.configure(text="Stop")  # Modifica la caption del pulsante
+            is_playing = True
 
 # Configurazione CustomTkinter
 ctk.set_appearance_mode("dark")
@@ -111,22 +152,26 @@ select_button = ctk.CTkButton(control_frame, text="Seleziona file WAV", command=
 select_button.pack(pady=10)
 
 preview_button = ctk.CTkButton(control_frame, text="Preview", command=preview_file)
-preview_button.pack(pady=10)
+preview_button.pack_forget()  # Nascondi il tasto Preview all'inizio
 
-bpm_label = ctk.CTkLabel(control_frame, text="BPM:")
-bpm_label.pack(pady=5)
+bpm_frame = ctk.CTkFrame(control_frame)
+bpm_label = ctk.CTkLabel(bpm_frame, text="BPM:")
+bpm_label.pack(side="left", padx=5)
 
-bpm_slider = ctk.CTkSlider(control_frame, from_=60, to=240, number_of_steps=180, command=update_bpm)
-bpm_slider.set(bpm)  # Imposta il valore iniziale dello slider
-bpm_slider.pack(pady=5)
+bpm_entry = ctk.CTkEntry(bpm_frame, width=60)
+bpm_entry.insert(0, str(bpm))  # Imposta il valore iniziale del BPM
+bpm_entry.pack(side="left", padx=5)
+bpm_entry.bind("<Return>", lambda event: update_bpm())  # Aggiorna il BPM quando si preme Invio
+bpm_frame.pack_forget()  # Nascondi il controllo BPM all'inizio
 
 graph_frame = ctk.CTkFrame(main_frame)
 graph_frame.pack(side="left", fill="both", expand=True)
 
 fig, ax = plt.subplots(figsize=(8, 4))
 canvas = FigureCanvasTkAgg(fig, master=graph_frame)
-
 canvas.get_tk_widget().pack(fill='both', expand=True)
+canvas.mpl_connect("button_press_event", add_marker)
+canvas.mpl_connect("motion_notify_event", drag_marker)
 
 update_graph()  # Aggiorna il grafico all'avvio
 root.mainloop()
