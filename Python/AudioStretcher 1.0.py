@@ -16,7 +16,7 @@ markers = []  # Posizioni dei marker
 undo_stack = []  # Stack per undo
 redo_stack = []  # Stack per redo
 rectangle_selector = None
-is_playing = False # per tenere traccia dello stato del tasto Preview
+is_playing = False  # Stato del tasto Preview (True = Riproduzione attiva)
 
 def onselect(eclick, erelease):
     """Gestisce la selezione di un'area sul grafico."""
@@ -114,6 +114,7 @@ def push_undo_state():
     global undo_stack, redo_stack
     undo_stack.append((selected_range, markers.copy()))
     redo_stack.clear()
+    update_button_visibility()  # Aggiorna la visibilità dei tasti
 
 def undo():
     """Esegue undo."""
@@ -122,6 +123,7 @@ def undo():
         redo_stack.append((selected_range, markers.copy()))
         selected_range, markers = undo_stack.pop()
         update_graph()
+        update_button_visibility()  # Aggiorna la visibilità dei tasti
 
 def redo():
     """Esegue redo."""
@@ -130,6 +132,19 @@ def redo():
         undo_stack.append((selected_range, markers.copy()))
         selected_range, markers = redo_stack.pop()
         update_graph()
+        update_button_visibility()  # Aggiorna la visibilità dei tasti
+
+def update_button_visibility():
+    """Aggiorna la visibilità dei tasti Undo e Redo."""
+    if undo_stack:
+        undo_button.pack(pady=10)  # Mostra il tasto Undo
+    else:
+        undo_button.pack_forget()  # Nascondi il tasto Undo
+    
+    if redo_stack:
+        redo_button.pack(pady=10)  # Mostra il tasto Redo
+    else:
+        redo_button.pack_forget()  # Nascondi il tasto Redo
 
 def select_file():
     """Carica un file WAV e visualizza la forma d'onda."""
@@ -187,10 +202,7 @@ preview_button = ctk.CTkButton(control_frame, text="Preview", command=preview_fi
 preview_button.pack(pady=10)
 
 undo_button = ctk.CTkButton(control_frame, text="Undo", command=undo)
-undo_button.pack(pady=10)
-
 redo_button = ctk.CTkButton(control_frame, text="Redo", command=redo)
-redo_button.pack(pady=10)
 
 graph_frame = ctk.CTkFrame(main_frame)
 graph_frame.pack(side="left", fill="both", expand=True)
@@ -203,5 +215,6 @@ canvas.mpl_connect("motion_notify_event", drag_marker)
 
 enable_selector(ax)
 update_graph()
+update_button_visibility()  # Controlla visibilità iniziale dei tasti
 
 root.mainloop()
