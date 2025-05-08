@@ -130,8 +130,9 @@ def add_marker(event):
         return
 
     if len(markers) > 0:
-        print("Esiste già un marker. Cancella il marker esistente per crearne uno nuovo.")
+        print("Esiste già un marker. Spostalo o cancellalo per crearne uno nuovo.")
         return  # Non consentire di aggiungere altri marker
+
     if event.xdata:
         markers.append(event.xdata)
         print(f"Marker aggiunto: {event.xdata}")
@@ -151,13 +152,15 @@ def drag_marker(event):
                 break
 
         if closest_marker is not None:
-            # Limita il movimento del marker tra l'inizio e la fine del grafico
-            min_limit = 0  # Limite minimo (inizio della forma d'onda)
-            max_limit = canvas.figure.axes[0].get_xlim()[1]  # Limite massimo (fine della forma d'onda)
-            new_position = max(min(event.xdata, max_limit), min_limit)
+            idx = markers.index(closest_marker)
 
-            # Aggiorna la posizione del marker
-            markers[markers.index(closest_marker)] = new_position
+            # Calcola i limiti per lo spostamento
+            min_limit = 0 if idx == 0 else beat_positions[max(0, idx - 1)]  # Limite minimo: barra BPM precedente
+            max_limit = beat_positions[min(len(beat_positions) - 1, idx + 1)]  # Limite massimo: barra BPM successiva
+
+            # Aggiorna la posizione del marker restando nei limiti
+            new_position = max(min(event.xdata, max_limit), min_limit)
+            markers[idx] = new_position  # Aggiorna la posizione del marker
             print(f"Marker spostato: {closest_marker} -> {new_position}")
             update_graph()
 
