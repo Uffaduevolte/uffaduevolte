@@ -35,7 +35,7 @@ def add_marker(event):
         markers.append(event.xdata)
         markers.sort()
         print(f"Marker aggiunto: {event.xdata}")
-        update_graph()  # Aggiorna il grafico mantenendo la selezione visibile
+        update_graph()  # Aggiorna il grafico senza rimuovere la selezione
 
 def drag_marker(event):
     """Gestisce lo spostamento di un marker tramite drag & drop."""
@@ -139,9 +139,11 @@ def update_graph():
     ax.spines['bottom'].set_color('#333333')
     ax.plot(time, waveform, color='orange', label="Forma d'onda originale")
 
+    # Mantieni l'area selezionata visibile
     if selected_range:
         ax.axvspan(selected_range[0], selected_range[1], color='blue', alpha=0.3)
 
+    # Aggiungi i marker sul grafico
     for marker in markers:
         ax.axvline(x=marker, color='white', linestyle='--')
 
