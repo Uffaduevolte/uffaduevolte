@@ -98,6 +98,11 @@ def update_graph():
 
     ax = canvas.figure.axes[0]
     ax.clear()
+    ax.set_facecolor('#333333')  # Sfondo grigio scuro
+    ax.spines['top'].set_color('#333333')  # Cornice grigio scuro
+    ax.spines['right'].set_color('#333333')
+    ax.spines['left'].set_color('#333333')
+    ax.spines['bottom'].set_color('#333333')
     ax.plot(time, waveform, color='orange', label="Forma d'onda originale")
 
     if selected_range:
@@ -153,6 +158,13 @@ def update_preview_visibility():
     else:
         preview_button.pack_forget()  # Nascondi il tasto Preview
 
+def update_graph_visibility():
+    """Aggiorna la visibilità del grafico."""
+    if selected_file:
+        canvas.get_tk_widget().pack(fill='both', expand=True)  # Mostra il grafico
+    else:
+        canvas.get_tk_widget().pack_forget()  # Nascondi il grafico
+
 def select_file():
     """Carica un file WAV e visualizza la forma d'onda."""
     global selected_file
@@ -161,6 +173,7 @@ def select_file():
         push_undo_state()
         update_graph()
         update_preview_visibility()  # Aggiorna la visibilità del tasto Preview
+        update_graph_visibility()  # Aggiorna la visibilità del grafico
 
 def preview_file():
     """Riproduce o interrompe l'audio (originale o modificato)."""
@@ -216,7 +229,7 @@ graph_frame.pack(side="left", fill="both", expand=True)
 
 fig, ax = plt.subplots(figsize=(8, 4))
 canvas = FigureCanvasTkAgg(fig, master=graph_frame)
-canvas.get_tk_widget().pack(fill='both', expand=True)
+
 canvas.mpl_connect("button_press_event", on_click)
 canvas.mpl_connect("motion_notify_event", drag_marker)
 
@@ -224,5 +237,6 @@ enable_selector(ax)
 update_graph()
 update_button_visibility()  # Controlla visibilità iniziale dei tasti
 update_preview_visibility()  # Controlla visibilità iniziale del tasto Preview
+update_graph_visibility()  # Controlla visibilità iniziale del grafico
 
 root.mainloop()
