@@ -17,6 +17,7 @@ undo_stack = []  # Stack per undo
 redo_stack = []  # Stack per redo
 rectangle_selector = None
 is_playing = False  # Stato del tasto Preview (True = Riproduzione attiva)
+is_processed = False  # False inizialmente, diventa True solo dopo una rielaborazione effettiva
 
 def onselect(eclick, erelease):
     """Gestisce la selezione di un'area sul grafico."""
@@ -29,26 +30,37 @@ def onselect(eclick, erelease):
 
 def add_marker(event):
     """Aggiunge un marker cliccando nell'area selezionata."""
-    global markers
+    global markers, is_processed
     if selected_range and selected_range[0] <= event.xdata <= selected_range[1]:
         markers.append(event.xdata)
         markers.sort()
         print(f"Marker aggiunto: {event.xdata}")
-        push_undo_state()  # Salva lo stato solo dopo una modifica
+        if is_processed:  # Salva lo stato solo se il file è stato elaborato
+            push_undo_state()
         update_graph()
 
 def remove_marker(event):
     """Rimuove un marker con doppio clic."""
-    global markers
+    global markers, is_processed
     tolerance = 0.1  # Tolleranza per selezionare un marker
     for marker in markers:
         if abs(marker - event.xdata) < tolerance:
             markers.remove(marker)
             print(f"Marker rimosso: {marker}")
-            push_undo_state()  # Salva lo stato solo dopo una modifica
+            if is_processed:  # Salva lo stato solo se il file è stato elaborato
+                push_undo_state()
             update_graph()
             return
 
+def some_processing_function():
+    """Esegue una rielaborazione del file."""
+    global is_processed
+    # Esegui qui la rielaborazione effettiva del file
+    print("Rielaborazione del file eseguita.")
+    is_processed = True  # Imposta il file come elaborato
+    push_undo_state()  # Salva lo stato poiché il file è stato rielaborato
+    update_graph()
+    
 def enable_selector(ax):
     """Abilita il RectangleSelector per selezionare un'area."""
     global rectangle_selector
