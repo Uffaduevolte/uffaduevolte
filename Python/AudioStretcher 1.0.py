@@ -135,7 +135,7 @@ def redo():
         update_button_visibility()  # Aggiorna la visibilità dei tasti
 
 def update_button_visibility():
-    """Aggiorna la visibilità dei tasti Undo e Redo."""
+    """Aggiorna la visibilità dei tasti Undo, Redo e Preview."""
     if undo_stack:
         undo_button.pack(pady=10)  # Mostra il tasto Undo
     else:
@@ -146,6 +146,13 @@ def update_button_visibility():
     else:
         redo_button.pack_forget()  # Nascondi il tasto Redo
 
+def update_preview_visibility():
+    """Aggiorna la visibilità del tasto Preview."""
+    if selected_file:
+        preview_button.pack(pady=10)  # Mostra il tasto Preview
+    else:
+        preview_button.pack_forget()  # Nascondi il tasto Preview
+
 def select_file():
     """Carica un file WAV e visualizza la forma d'onda."""
     global selected_file
@@ -153,6 +160,7 @@ def select_file():
     if selected_file:
         push_undo_state()
         update_graph()
+        update_preview_visibility()  # Aggiorna la visibilità del tasto Preview
 
 def preview_file():
     """Riproduce o interrompe l'audio (originale o modificato)."""
@@ -199,7 +207,6 @@ select_button = ctk.CTkButton(control_frame, text="Seleziona file WAV", command=
 select_button.pack(pady=10)
 
 preview_button = ctk.CTkButton(control_frame, text="Preview", command=preview_file)
-preview_button.pack(pady=10)
 
 undo_button = ctk.CTkButton(control_frame, text="Undo", command=undo)
 redo_button = ctk.CTkButton(control_frame, text="Redo", command=redo)
@@ -216,5 +223,6 @@ canvas.mpl_connect("motion_notify_event", drag_marker)
 enable_selector(ax)
 update_graph()
 update_button_visibility()  # Controlla visibilità iniziale dei tasti
+update_preview_visibility()  # Controlla visibilità iniziale del tasto Preview
 
 root.mainloop()
