@@ -53,7 +53,7 @@ def enable_selector(ax):
     global rectangle_selector
     rectangle_selector = RectangleSelector(
         ax, onselect,
-        drawtype='box', useblit=True, button=[1],
+        useblit=True, button=[1],
         interactive=True,
         rectprops=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)
     )
