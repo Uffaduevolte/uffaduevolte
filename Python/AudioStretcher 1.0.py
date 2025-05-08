@@ -55,7 +55,7 @@ def enable_selector(ax):
         ax, onselect,
         useblit=True, button=[1],
         interactive=True,
-        rectprops=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)
+        props=dict(facecolor='blue', edgecolor='black', alpha=0.3, fill=True)
     )
 
 def on_click(event):
