@@ -113,9 +113,11 @@ def select_file():
     selected_file = ctk.filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if selected_file:
         update_graph()  # Aggiorna il grafico
-        update_graph_visibility()  # Mostra il grafico
+        canvas.get_tk_widget().pack(fill='both', expand=True)  # Mostra il grafico
         preview_button.pack(pady=10)  # Mostra il tasto Preview
         bpm_frame.pack(pady=10)  # Mostra il controllo BPM
+    else:
+        canvas.get_tk_widget().pack_forget()  # Nascondi il grafico se non c'è un file
 
 def add_marker(event):
     """Aggiunge un marker cliccando sul grafico."""
