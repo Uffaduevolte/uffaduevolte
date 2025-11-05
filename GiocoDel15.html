@@ -23,8 +23,11 @@
             font-weight: bold;
             font-family: Arial, sans-serif;
             text-align: center;
-            color: yellow; /* Testo giallo */
-            text-shadow: 2px 2px 6px red; /* Ombreggiatura rossa */
+            color: yellow;
+            text-shadow:
+                4px 4px 12px red,
+                0px 0px 2px #ff0000,
+                0 0 8px red;
         }
         .puzzle-container {
             display: grid;
@@ -58,6 +61,31 @@
             box-shadow: 0 2px #666;
             transform: translateY(2px);
         }
+        /* Overlay per avviare audio (solo su mobile/inizio) */
+        #audio-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            z-index: 99;
+            justify-content: center;
+            align-items: center;
+            color: yellow;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+        }
+        #audio-overlay button {
+            margin-top: 24px;
+            font-size: 20px;
+            padding: 10px 24px;
+            border-radius: 8px;
+            background: #1e90ff;
+            color: white;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -67,15 +95,48 @@
     <div id="video-button">
         <button id="video-action">Clicca qui per il video...e se YouTube ti chiede di accettare, tu accetta...tanto, chettifrega</button>
     </div>
+    <div id="audio-overlay">
+        <span>Vuoi ascoltare la musica? Tocca il bottone qui sotto.</span>
+        <button id="audio-start">Avvia Musica</button>
+    </div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Audio logic
+            const isMobile = window.matchMedia("(max-width: 518px), (pointer: coarse)").matches ||
+                            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            // Audio logic con overlay
             let audioPlaying = false;
             const silentNightAudio = document.getElementById('silentNightAudio');
+            const audioOverlay = document.getElementById('audio-overlay');
+            const audioStartBtn = document.getElementById('audio-start');
+
+            function showAudioOverlay() {
+                audioOverlay.style.display = 'flex';
+            }
+            function hideAudioOverlay() {
+                audioOverlay.style.display = 'none';
+            }
+
+            audioStartBtn.addEventListener('click', function() {
+                try {
+                    silentNightAudio.play().then(() => {
+                        audioPlaying = true;
+                        hideAudioOverlay();
+                    });
+                } catch (e) {
+                    hideAudioOverlay();
+                }
+            });
+
             function playAudioOnce() {
+                // Avvia solo se non è già avviato
                 if (!audioPlaying) {
-                    silentNightAudio.play().catch(() => {});
-                    audioPlaying = true;
+                    if (isMobile) {
+                        showAudioOverlay();
+                    } else {
+                        silentNightAudio.play().catch(() => {});
+                        audioPlaying = true;
+                    }
                 }
             }
             function stopAudio() {
@@ -88,18 +149,18 @@
                 window.open('https://youtube.com/shorts/k7VZRKHPUUM?feature=share', '_blank');
             });
 
-            // Display the last modified date and time
+            // Visualizza testo Puzzle
             const datetimeElement = document.getElementById('datetime');
             datetimeElement.textContent = `Sposta le tessere per completare il Puzzle`;
 
+            // Puzzle
             const puzzleContainer = document.getElementById('puzzle-container');
             const imageSrc = 'images/MiaFaccia001.jpg';
             const size = 300;
             const pieceWidth = size / 3;
             const pieceHeight = size / 3 * (3 / 3);
             const pieces = [];
-
-            // Create puzzle pieces
+            // Crea le tessere
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 3; col++) {
                     const piece = document.createElement('div');
@@ -114,73 +175,12 @@
                     puzzleContainer.appendChild(piece);
                 }
             }
-
-            // Shuffle pieces
+            // Mescola tessere
             pieces.sort(() => Math.random() - 0.5);
             pieces.forEach(piece => puzzleContainer.appendChild(piece));
 
             let draggedPiece = null;
             let draggedPieceIndex = -1;
-
-            function onPieceMove() {
-                playAudioOnce();
-            }
-
-            puzzleContainer.addEventListener('dragstart', function(e) {
-                draggedPiece = e.target;
-                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
-                onPieceMove();
-            });
-
-            puzzleContainer.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
-
-            puzzleContainer.addEventListener('drop', function(e) {
-                e.preventDefault();
-                if (e.target.classList.contains('puzzle-piece') && e.target !== draggedPiece) {
-                    const targetPiece = e.target;
-                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
-
-                    // Use a temporary placeholder element to swap the pieces correctly
-                    const placeholder = document.createElement('div');
-                    puzzleContainer.replaceChild(placeholder, draggedPiece);
-                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
-                    puzzleContainer.replaceChild(targetPiece, placeholder);
-
-                    checkCompletion();
-                }
-            });
-
-            // Add touch event listeners for mobile support
-            puzzleContainer.addEventListener('touchstart', function(e) {
-                const touch = e.touches[0];
-                draggedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
-                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
-                onPieceMove();
-            });
-
-            puzzleContainer.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const targetPiece = document.elementFromPoint(touch.clientX, touch.clientY);
-                if (targetPiece && targetPiece.classList.contains('puzzle-piece') && targetPiece !== draggedPiece) {
-                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
-
-                    // Use a temporary placeholder element to swap the pieces correctly
-                    const placeholder = document.createElement('div');
-                    puzzleContainer.replaceChild(placeholder, draggedPiece);
-                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
-                    puzzleContainer.replaceChild(targetPiece, placeholder);
-
-                    checkCompletion();
-                }
-            });
-
-            puzzleContainer.addEventListener('touchend', function(e) {
-                draggedPiece = null;
-                draggedPieceIndex = -1;
-            });
 
             function checkCompletion() {
                 let isComplete = true;
@@ -198,6 +198,71 @@
                     document.getElementById('video-button').style.display = 'block';
                 }
             }
+
+            // Audio: SOLO su click/touch diretto su tessera (gesture user)
+            puzzleContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('puzzle-piece')) {
+                    playAudioOnce();
+                }
+            });
+
+            puzzleContainer.addEventListener('touchend', function(e) {
+                const touch = e.changedTouches[0];
+                const touchedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (touchedPiece && touchedPiece.classList.contains('puzzle-piece')) {
+                    playAudioOnce();
+                }
+                draggedPiece = null;
+                draggedPieceIndex = -1;
+            });
+
+            // Spostamento drag (desktop)
+            puzzleContainer.addEventListener('dragstart', function(e) {
+                draggedPiece = e.target;
+                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+            });
+            puzzleContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            puzzleContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (e.target.classList.contains('puzzle-piece') && e.target !== draggedPiece) {
+                    const targetPiece = e.target;
+                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
+                    // Usa placeholder temporaneo per swap
+                    const placeholder = document.createElement('div');
+                    puzzleContainer.replaceChild(placeholder, draggedPiece);
+                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
+                    puzzleContainer.replaceChild(targetPiece, placeholder);
+
+                    checkCompletion();
+                }
+            });
+
+            // Mobile: spostamento touch
+            puzzleContainer.addEventListener('touchstart', function(e) {
+                const touch = e.touches[0];
+                draggedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+            });
+
+            puzzleContainer.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const targetPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (targetPiece && targetPiece.classList.contains('puzzle-piece') && targetPiece !== draggedPiece) {
+                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
+
+                    const placeholder = document.createElement('div');
+                    puzzleContainer.replaceChild(placeholder, draggedPiece);
+                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
+                    puzzleContainer.replaceChild(targetPiece, placeholder);
+
+                    checkCompletion();
+                }
+            });
+            // (il playAudioOnce è chiamato solo su click/touch diretto, non sulle gesture di drag/drop/touchmove)
+
         });
     </script>
 </body>
