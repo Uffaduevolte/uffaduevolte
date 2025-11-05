@@ -58,12 +58,27 @@
 </head>
 <body>
     <div class="datetime" id="datetime"></div>
+    <!-- Audio invisibile, viene riprodotto in automatico -->
+    <audio id="silentNightAudio" src="Sounds/SilentNight.mp3"></audio>
     <div class="puzzle-container" id="puzzle-container"></div>
     <div id="video-button">
         <button onclick="window.open('https://youtube.com/shorts/k7VZRKHPUUM?feature=share', '_blank')">Clicca qui per il video...e se YouTube ti chiede di accettare, tu accetta...tanto, chettifrega</button>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Riproduzione automatica dell'audio
+            const silentNightAudio = document.getElementById('silentNightAudio');
+            function tryPlayAudio() {
+                silentNightAudio.play().catch(function() {
+                    // Se blocca l'autoplay, chiedi all'utente una qualsiasi interazione col documento (clic/tap)
+                    document.body.addEventListener('click', playOnInteraction, { once: true });
+                });
+            }
+            function playOnInteraction() {
+                silentNightAudio.play();
+            }
+            tryPlayAudio();
+
             // Display the last modified date and time
             const datetimeElement = document.getElementById('datetime');
             const lastModifiedDate = new Date(2025, 2, 31, 9, 39, 20); // Data e ora dell'ultimo salvataggio
