@@ -61,24 +61,28 @@
     <audio id="silentNightAudio" src="Sounds/SilentNight.mp3"></audio>
     <div class="puzzle-container" id="puzzle-container"></div>
     <div id="video-button">
-        <button onclick="window.open('https://youtube.com/shorts/k7VZRKHPUUM?feature=share', '_blank')">Clicca qui per il video...e se YouTube ti chiede di accettare, tu accetta...tanto, chettifrega</button>
+        <button id="video-action">Clicca qui per il video...e se YouTube ti chiede di accettare, tu accetta...tanto, chettifrega</button>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Riproduzione audio una sola volta, al primo interazione
-            let audioPlayed = false;
+            // Audio logic
+            let audioPlaying = false;
             const silentNightAudio = document.getElementById('silentNightAudio');
-
             function playAudioOnce() {
-                if (!audioPlayed) {
+                if (!audioPlaying) {
                     silentNightAudio.play().catch(() => {});
-                    audioPlayed = true;
+                    audioPlaying = true;
                 }
             }
-
-            // Intercetta sia click/tap che movimenti nel puzzle
-            document.body.addEventListener('mousedown', playAudioOnce, { once: true });
-            document.body.addEventListener('touchstart', playAudioOnce, { once: true });
+            function stopAudio() {
+                silentNightAudio.pause();
+                silentNightAudio.currentTime = 0;
+                audioPlaying = false;
+            }
+            document.getElementById('video-action').addEventListener('click', function() {
+                stopAudio();
+                window.open('https://youtube.com/shorts/k7VZRKHPUUM?feature=share', '_blank');
+            });
 
             // Display the last modified date and time
             const datetimeElement = document.getElementById('datetime');
@@ -114,10 +118,14 @@
             let draggedPiece = null;
             let draggedPieceIndex = -1;
 
+            function onPieceMove() {
+                playAudioOnce();
+            }
+
             puzzleContainer.addEventListener('dragstart', function(e) {
                 draggedPiece = e.target;
                 draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
-                playAudioOnce();
+                onPieceMove();
             });
 
             puzzleContainer.addEventListener('dragover', function(e) {
@@ -142,10 +150,10 @@
 
             // Add touch event listeners for mobile support
             puzzleContainer.addEventListener('touchstart', function(e) {
-                playAudioOnce();
                 const touch = e.touches[0];
                 draggedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
                 draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+                onPieceMove();
             });
 
             puzzleContainer.addEventListener('touchmove', function(e) {
