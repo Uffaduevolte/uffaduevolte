@@ -2,8 +2,8 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gioco del Puzzle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             display: flex;
@@ -58,7 +58,6 @@
 </head>
 <body>
     <div class="datetime" id="datetime"></div>
-    <!-- Audio invisibile, viene riprodotto in automatico -->
     <audio id="silentNightAudio" src="Sounds/SilentNight.mp3"></audio>
     <div class="puzzle-container" id="puzzle-container"></div>
     <div id="video-button">
@@ -66,29 +65,30 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Riproduzione automatica dell'audio
+            // Riproduzione audio una sola volta, al primo interazione
+            let audioPlayed = false;
             const silentNightAudio = document.getElementById('silentNightAudio');
-            function tryPlayAudio() {
-                silentNightAudio.play().catch(function() {
-                    // Se blocca l'autoplay, chiedi all'utente una qualsiasi interazione col documento (clic/tap)
-                    document.body.addEventListener('click', playOnInteraction, { once: true });
-                });
+
+            function playAudioOnce() {
+                if (!audioPlayed) {
+                    silentNightAudio.play().catch(() => {});
+                    audioPlayed = true;
+                }
             }
-            function playOnInteraction() {
-                silentNightAudio.play();
-            }
-            tryPlayAudio();
+
+            // Intercetta sia click/tap che movimenti nel puzzle
+            document.body.addEventListener('mousedown', playAudioOnce, { once: true });
+            document.body.addEventListener('touchstart', playAudioOnce, { once: true });
 
             // Display the last modified date and time
             const datetimeElement = document.getElementById('datetime');
-            const lastModifiedDate = new Date(2025, 2, 31, 9, 39, 20); // Data e ora dell'ultimo salvataggio
             datetimeElement.textContent = `Sposta le tessere per completare il Puzzle`;
 
             const puzzleContainer = document.getElementById('puzzle-container');
             const imageSrc = 'images/MiaFaccia001.jpg';
             const size = 300;
             const pieceWidth = size / 3;
-            const pieceHeight = size / 3 * (3 / 3); // Maintain aspect ratio
+            const pieceHeight = size / 3 * (3 / 3);
             const pieces = [];
 
             // Create puzzle pieces
@@ -117,6 +117,7 @@
             puzzleContainer.addEventListener('dragstart', function(e) {
                 draggedPiece = e.target;
                 draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+                playAudioOnce();
             });
 
             puzzleContainer.addEventListener('dragover', function(e) {
@@ -141,6 +142,7 @@
 
             // Add touch event listeners for mobile support
             puzzleContainer.addEventListener('touchstart', function(e) {
+                playAudioOnce();
                 const touch = e.touches[0];
                 draggedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
                 draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
