@@ -1,4 +1,4 @@
-ti<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -195,6 +195,7 @@ ti<!DOCTYPE html>
 
             let draggedPiece = null;
             let draggedPieceIndex = -1;
+            let touchStart = { x: 0, y: 0 };
 
             function checkCompletion() {
                 let isComplete = true;
@@ -243,34 +244,46 @@ ti<!DOCTYPE html>
                 }
             });
 
-            // Mobile: spostamento touch, attiva musica dopo swap tessere
+            // --- PATCH PER MOBILE ---
+            // touchstart: registra la tessera selezionata
             puzzleContainer.addEventListener('touchstart', function(e) {
                 const touch = e.touches[0];
                 draggedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
                 draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+                touchStart = { x: touch.clientX, y: touch.clientY };
             });
 
+            // touchmove: solo prevenzione scrolling, niente swap!
             puzzleContainer.addEventListener('touchmove', function(e) {
                 e.preventDefault();
-                const touch = e.touches[0];
-                const targetPiece = document.elementFromPoint(touch.clientX, touch.clientY);
-                if (targetPiece && targetPiece.classList.contains('puzzle-piece') && targetPiece !== draggedPiece) {
-                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
+            });
 
+            // touchend: effettua lo swap
+            puzzleContainer.addEventListener('touchend', function(e) {
+                if (!draggedPiece) {
+                    draggedPieceIndex = -1;
+                    return;
+                }
+                const touch = e.changedTouches[0];
+                const targetPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+
+                if (targetPiece &&
+                    targetPiece.classList.contains('puzzle-piece') &&
+                    targetPiece !== draggedPiece) {
+                    // Swap come su desktop
                     const placeholder = document.createElement('div');
                     puzzleContainer.replaceChild(placeholder, draggedPiece);
                     puzzleContainer.replaceChild(draggedPiece, targetPiece);
                     puzzleContainer.replaceChild(targetPiece, placeholder);
 
-                    playAudioOnce(); // Attiva musica al primo movimento di tessera (mobile)
+                    playAudioOnce(); // La musica parte dopo il PRIMO movimento tessera
                     checkCompletion();
                 }
-            });
-
-            puzzleContainer.addEventListener('touchend', function(e) {
+                // reset
                 draggedPiece = null;
                 draggedPieceIndex = -1;
             });
+
         });
     </script>
 </body>
