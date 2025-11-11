@@ -1,1 +1,270 @@
-ff
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Gioco del Puzzle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212;
+            background-image: url('images/XmasTree.jpeg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: #ffffff;
+        }
+        .datetime {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: yellow;
+            text-shadow:
+                4px 4px 12px red,
+                0px 0px 2px #ff0000,
+                0 0 8px red;
+        }
+        .puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 2px;
+        }
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            background-size: 300px 300px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        #video-button {
+            display: none;
+            margin-top: 20px;
+        }
+        #video-button button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #1e90ff;
+            color: white;
+            box-shadow: 0 4px #999;
+        }
+        #video-button button:active {
+            background-color: #1e90ff;
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+        }
+        /* Overlay per avviare audio (solo su mobile/inizio) */
+        #audio-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            z-index: 99;
+            justify-content: center;
+            align-items: center;
+            color: yellow;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            flex-direction: column;
+        }
+        #audio-overlay button {
+            margin-top: 24px;
+            font-size: 20px;
+            padding: 10px 24px;
+            border-radius: 8px;
+            background: #1e90ff;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="datetime" id="datetime"></div>
+    <audio id="silentNightAudio" src="Sounds/SilentNight.mp3"></audio>
+    <div class="puzzle-container" id="puzzle-container"></div>
+    <div id="video-button">
+        <button id="video-action">Clicca qui per il video...e se YouTube ti chiede di accettare, tu accetta...tanto, chettifrega</button>
+    </div>
+    <div id="audio-overlay">
+        <span>Tocca il bottone qui sotto per attivare sottofondo musicale.</span>
+        <button id="audio-start">Avvia Musica</button>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const isMobile = window.matchMedia("(max-width: 518px), (pointer: coarse)").matches ||
+                            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            // Audio logic con overlay
+            let audioPlaying = false;
+            const silentNightAudio = document.getElementById('silentNightAudio');
+            const audioOverlay = document.getElementById('audio-overlay');
+            const audioStartBtn = document.getElementById('audio-start');
+
+            function showAudioOverlay() {
+                audioOverlay.style.display = 'flex';
+            }
+            function hideAudioOverlay() {
+                audioOverlay.style.display = 'none';
+            }
+
+            audioStartBtn.addEventListener('click', function() {
+                try {
+                    silentNightAudio.play().then(() => {
+                        audioPlaying = true;
+                        hideAudioOverlay();
+                    });
+                } catch (e) {
+                    hideAudioOverlay();
+                }
+            });
+
+            function playAudioOnce() {
+                // Avvia solo se non è già avviato
+                if (!audioPlaying) {
+                    if (isMobile) {
+                        showAudioOverlay();
+                    } else {
+                        silentNightAudio.play().catch(() => {});
+                        audioPlaying = true;
+                    }
+                }
+            }
+            function stopAudio() {
+                silentNightAudio.pause();
+                silentNightAudio.currentTime = 0;
+                audioPlaying = false;
+            }
+            document.getElementById('video-action').addEventListener('click', function() {
+                stopAudio();
+                window.open('https://youtube.com/shorts/k7VZRKHPUUM?feature=share', '_blank');
+            });
+
+            // Visualizza testo Puzzle
+            const datetimeElement = document.getElementById('datetime');
+            datetimeElement.textContent = `Sposta le tessere per completare il Puzzle`;
+
+            // Puzzle
+            const puzzleContainer = document.getElementById('puzzle-container');
+            const imageSrc = 'images/MiaFacciaNatale.jpg';
+            const size = 300;
+            const pieceWidth = size / 3;
+            const pieceHeight = size / 3 * (3 / 3);
+            const pieces = [];
+            // Crea le tessere
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    const piece = document.createElement('div');
+                    piece.classList.add('puzzle-piece');
+                    piece.style.backgroundImage = `url(${imageSrc})`;
+                    piece.style.backgroundPosition = `-${col * pieceWidth}px -${row * pieceHeight}px`;
+                    piece.style.width = `${pieceWidth}px`;
+                    piece.style.height = `${pieceHeight}px`;
+                    piece.dataset.correctPosition = `${col}-${row}`;
+                    piece.draggable = true;
+                    pieces.push(piece);
+                    puzzleContainer.appendChild(piece);
+                }
+            }
+            // Mescola tessere
+            pieces.sort(() => Math.random() - 0.5);
+            pieces.forEach(piece => puzzleContainer.appendChild(piece));
+
+            let draggedPiece = null;
+            let draggedPieceIndex = -1;
+
+            function checkCompletion() {
+                let isComplete = true;
+                pieces.forEach(piece => {
+                    const [col, row] = piece.dataset.correctPosition.split('-').map(Number);
+                    const correctIndex = row * 3 + col;
+                    const currentIndex = Array.from(puzzleContainer.children).indexOf(piece);
+
+                    if (correctIndex !== currentIndex) {
+                        isComplete = false;
+                    }
+                });
+
+                if (isComplete) {
+                    document.getElementById('video-button').style.display = 'block';
+                }
+            }
+
+            // Audio: SOLO su click/touch diretto su tessera (gesture user)
+            puzzleContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('puzzle-piece')) {
+                    playAudioOnce();
+                }
+            });
+
+            puzzleContainer.addEventListener('touchend', function(e) {
+                const touch = e.changedTouches[0];
+                const touchedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (touchedPiece && touchedPiece.classList.contains('puzzle-piece')) {
+                    playAudioOnce();
+                }
+                draggedPiece = null;
+                draggedPieceIndex = -1;
+            });
+
+            // Spostamento drag (desktop)
+            puzzleContainer.addEventListener('dragstart', function(e) {
+                draggedPiece = e.target;
+                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+            });
+            puzzleContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            puzzleContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (e.target.classList.contains('puzzle-piece') && e.target !== draggedPiece) {
+                    const targetPiece = e.target;
+                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
+                    // Usa placeholder temporaneo per swap
+                    const placeholder = document.createElement('div');
+                    puzzleContainer.replaceChild(placeholder, draggedPiece);
+                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
+                    puzzleContainer.replaceChild(targetPiece, placeholder);
+
+                    checkCompletion();
+                }
+            });
+
+            // Mobile: spostamento touch
+            puzzleContainer.addEventListener('touchstart', function(e) {
+                const touch = e.touches[0];
+                draggedPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                draggedPieceIndex = Array.from(puzzleContainer.children).indexOf(draggedPiece);
+            });
+
+            puzzleContainer.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const targetPiece = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (targetPiece && targetPiece.classList.contains('puzzle-piece') && targetPiece !== draggedPiece) {
+                    const targetPieceIndex = Array.from(puzzleContainer.children).indexOf(targetPiece);
+
+                    const placeholder = document.createElement('div');
+                    puzzleContainer.replaceChild(placeholder, draggedPiece);
+                    puzzleContainer.replaceChild(draggedPiece, targetPiece);
+                    puzzleContainer.replaceChild(targetPiece, placeholder);
+
+                    checkCompletion();
+                }
+            });
+            // (il playAudioOnce è chiamato solo su click/touch diretto, non sulle gesture di drag/drop/touchmove)
+
+        });
+    </script>
+</body>
+</html>
