@@ -73,8 +73,9 @@
             max-width: 90vw;
             box-sizing: border-box;
         }
-        #video-button button {
+        #video-action-link {
             width: 100%;
+            display: block;
             padding: 10px 0;
             font-size: 18px;
             cursor: pointer;
@@ -84,8 +85,9 @@
             color: white;
             box-shadow: 0 4px #999;
             text-align: center;
+            text-decoration: none;
         }
-        #video-button button:active {
+        #video-action-link:active {
             background-color: #1e90ff;
             box-shadow: 0 2px #666;
             transform: translateY(2px);
@@ -131,7 +133,12 @@
         <div class="datetime" id="datetime"></div>
         <div class="puzzle-container" id="puzzle-container"></div>
         <div id="video-button">
-            <button id="video-action">Clicca qui per il video...e se YouTube ti chiede di accettare, tu accetta...tanto, chettifrega</button>
+            <a id="video-action-link"
+               href="https://youtube.com/shorts/GNCAy1X2bzQ?si=6zQ9A6nLtVq_I4i5"
+               target="_blank"
+               rel="noopener noreferrer">
+                Clicca qui per il video...e se YouTube ti chiede di accettare, tu accetta...tanto, chettifrega
+            </a>
         </div>
         <div id="playlist-box">
             Playlist: <a href="https://www.youtube.com/playlist?list=PLFsPt7w5CeuzS-JVL-yx6YNi92zfsDm8M" target="_blank" rel="noopener noreferrer">Auguri Anni Precedenti</a>
@@ -160,10 +167,6 @@
                 evvaiAudio.currentTime = 0;
                 evvaiAudio.play().catch(() => {});
             }
-            document.getElementById('video-action').addEventListener('click', function() {
-                stopAudio();
-                window.location.href = 'https://youtube.com/shorts/GNCAy1X2bzQ?si=6zQ9A6nLtVq_I4i5';
-            });
 
             // Visualizza testo Puzzle
             const datetimeElement = document.getElementById('datetime');
