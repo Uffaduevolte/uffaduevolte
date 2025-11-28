@@ -289,6 +289,15 @@
                 draggedPieceIndex = -1;
             });
 
+            // PATCH: Solo popup su click per il video YouTube
+            const videoLink = document.getElementById('video-action-link');
+            if (videoLink) {
+                videoLink.addEventListener('click', function() {
+                    alert("Per assicurarti che la risoluzione del video di YouTube sia quella ottimale e che nessuna impostazione precedente del browser influenzi la visualizzazione, ti consigliamo di copiare il link e aprirlo manualmente in una nuova finestra in modalità incognito/privata!");
+                    // Il link si apre normalmente in una nuova tab (target=_blank)
+                });
+            }
+
         });
     </script>
 </body>
